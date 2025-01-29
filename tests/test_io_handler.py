@@ -60,3 +60,17 @@ def test_read_string_invalid_then_valid():
     io_handler = IOHandler()
     with patch('builtins.input', side_effect=['', 'A valid response']):
         assert io_handler.read_string("Enter a string:") == "A valid response"
+        
+def test_read_from_file():
+    io_handler = IOHandler()
+    mock_data = "Line 1\nLine 2\nLine 3\n"
+    with patch("builtins.open", mock_open(read_data=mock_data)) as mock_file:
+        result = io_handler.read_from_file("test_file.txt")
+        assert result == ["Line 1", "Line 2", "Line 3"]
+        mock_file.assert_called_once_with("test_file.txt", "r")
+
+def test_read_from_file_not_found():
+    io_handler = IOHandler()
+    with patch("builtins.open", side_effect=FileNotFoundError):
+        result = io_handler.read_from_file("missing_file.txt")
+        assert result == []

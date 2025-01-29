@@ -128,3 +128,20 @@ class IOHandler:
                 return user_input
             else:
                 print(f"Invalid input. Please enter a string between {min_length} and {max_length} characters.")
+
+    def read_from_file(self, file_path):
+        """
+        Reads input from a file and returns it as a list of lines.
+
+        Parameters:
+        file_path (str): The path to the input file.
+
+        Returns:
+        list: A list of strings, each representing a line of input from the file.
+        """
+        try:
+            with open(file_path, "r") as file:
+                return [line.strip() for line in file.readlines()]
+        except FileNotFoundError:
+            print(f"Error: File {file_path} not found.")
+            return []
