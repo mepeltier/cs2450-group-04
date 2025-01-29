@@ -51,14 +51,3 @@ class IOHandler:
                 return user_input
             else:
                 print("Invalid choice. Please select a valid option.")
-
-if __name__ == "__main__":
-    print("This is a test")
-    io_handler = IOHandler(log_file="uvsim.log")
-
-    user_int = io_handler.read_int("Input a number: ")
-    io_handler.write(f"You entered: {user_int}")
-    
-    choices = {"1": "Continue", "2": "Exit"}
-    choice = io_handler.read_choice("Select an option:", choices)
-    io_handler.write(f"You selected: {choices[choice]}")
