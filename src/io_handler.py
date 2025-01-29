@@ -90,3 +90,41 @@ class IOHandler:
                 return user_input
             else:
                 print("Invalid choice. Please select a valid option.")
+
+    def read_yes_no(self, text):
+        """
+        Prompts the user to confirm a Yes or No input.
+
+        Parameters:
+        text (str): The prompt message displayed to the user.
+
+        Returns:
+        bool: True if the user selects 'yes', False if 'no'.
+        """
+        while True:
+            user_input = input(f"{text} (yes/no): ").strip().lower()
+            if user_input in ['yes', 'y']:
+                return True
+            elif user_input in ['no', 'n']:
+                return False
+            else:
+                print("Invalid input. Please enter 'yes' or 'no'.")
+
+    def read_string(self, text, min_length=1, max_length=50):
+        """
+        Prompts the user to enter a string with length constraints.
+
+        Parameters:
+        text (str): The prompt message displayed to the user.
+        min_length (int): Minimum length of the string.
+        max_length (int): Maximum length of the string.
+
+        Returns:
+        str: A valid string within the length constraints.
+        """
+        while True:
+            user_input = input(text).strip()
+            if min_length <= len(user_input) <= max_length:
+                return user_input
+            else:
+                print(f"Invalid input. Please enter a string between {min_length} and {max_length} characters.")
