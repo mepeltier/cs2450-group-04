@@ -1,11 +1,22 @@
 class IOHandler:
     def __init__(self, log_file=None):
+        """
+        Initializes the IOHandler.
+        
+        Parameters:
+        log_file (str, optional): Path to a log file for logging outputs. Defaults to None.
+        """
         self.log_file = log_file
 
     def read_int(self, text):
         """
-        Reads a signed four-digit decimal number from user input.
-        Ensures that the input is a valid integer within the range -9999 to 9999.
+        Prompts the user to enter a signed four-digit integer.
+        
+        Parameters:
+        text (str): The prompt message displayed to the user.
+        
+        Returns:
+        int: A valid integer in the range -9999 to 9999.
         """
         while True:
             try:
@@ -19,7 +30,11 @@ class IOHandler:
 
     def write(self, value, log=False):
         """
-        Prints the given value to the console or logs it to a file based on the log flag.
+        Outputs a message to the console or logs it to a file.
+        
+        Parameters:
+        value (str): The message to be displayed or logged.
+        log (bool, optional): If True, logs to file instead of printing. Defaults to False.
         """
         if log and self.log_file:
             with open(self.log_file, "a") as log_file:
@@ -29,7 +44,11 @@ class IOHandler:
 
     def write_inline(self, value, log=False):
         """
-        Prints the given value without a newline or logs it to a file based on the log flag.
+        Outputs a message without a newline or logs it to a file.
+        
+        Parameters:
+        value (str): The message to be displayed or logged.
+        log (bool, optional): If True, logs to file instead of printing. Defaults to False.
         """
         if log and self.log_file:
             with open(self.log_file, "a") as log_file:
@@ -39,8 +58,14 @@ class IOHandler:
 
     def read_choice(self, text, choices):
         """
-        Reads a choice input from the user based on a given dictionary of choices.
-        Displays all choices in a readable format before prompting input.
+        Prompts the user to select an option from a given dictionary of choices.
+        
+        Parameters:
+        text (str): The prompt message displayed to the user.
+        choices (dict): A dictionary mapping valid input keys to their descriptions.
+        
+        Returns:
+        str: The key corresponding to the user's valid selection.
         """
         while True:
             print(text)
