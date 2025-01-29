@@ -2,16 +2,15 @@ import pytest
 from src.io_handler import IOHandler
 from unittest.mock import patch, mock_open
 
-def test_read_int_valid():
+def test_read_operation_valid():
     io_handler = IOHandler()
     with patch('builtins.input', side_effect=['1234']):
-        assert io_handler.read_int("Enter a number: ") == 1234
+        assert io_handler.read_operation("Enter a number: ") == 1234
 
-def test_read_int_invalid_then_valid():
+def test_read_operation_invalid_then_valid():
     io_handler = IOHandler()
     with patch('builtins.input', side_effect=['abcd', '10000', '-10000', '4321']):
-        assert io_handler.read_int("Enter a number: ") == 4321
-
+        assert io_handler.read_operation("Enter a number: ") == 4321
 
 def test_write_print():
     io_handler = IOHandler()
