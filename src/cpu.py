@@ -19,11 +19,13 @@ class CPU():
     def __init__(self):
         self.boot_up()
         self.log = False
+        self.halted = True
     
     def boot_up(self):
         self.accumulator = CPU.ACCUMULATOR_DEFAULT
         self.register = CPU.REGISTER_DEFAULT
         self.pointer = CPU.POINTER_DEFAULT
+        self.halted = False
 
     def run(self):
         self.boot_up()
@@ -34,7 +36,12 @@ class CPU():
                 self.operation(self.register)
                 self.pointer += 1
             except Halt:
+                self.halted = True
                 break     
+
+            except ValueError as e:
+                print(e)
+
             except KeyboardInterrupt:
                 print("Keyboard Interrupted")
                 break
@@ -121,9 +128,6 @@ class CPU():
                 #Default Error Case
                 case _:
                     raise ValueError(f"Invalid Operation: {word}")
-                
-        except ValueError as e:
-            print(e)
 
         except Halt:
             raise Halt      
