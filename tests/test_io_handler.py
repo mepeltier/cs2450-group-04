@@ -4,12 +4,22 @@ from unittest.mock import patch, mock_open
 
 def test_read_operation_valid():
     io_handler = IOHandler()
-    with patch('builtins.input', side_effect=['1234']):
+    with patch('builtins.input', side_effect=['+1234']):
         assert io_handler.read_operation("Enter a number: ") == 1234
+    with patch('builtins.input', side_effect=['-5678']):
+        assert io_handler.read_operation("Enter a number: ") == -5678
 
 def test_read_operation_invalid_then_valid():
     io_handler = IOHandler()
-    with patch('builtins.input', side_effect=['abcd', '10000', '-10000', '4321']):
+    with patch('builtins.input', side_effect=['abcd', '1234', '+12345', '-12345', '+1234']):
+        assert io_handler.read_operation("Enter a number: ") == 1234
+
+def test_read_operation_format():
+    io_handler = IOHandler()
+    # Test various invalid formats
+    invalid_inputs = ['1234', '12345', '+123', '-123', '++1234', '--1234']
+    valid_input = '+4321'
+    with patch('builtins.input', side_effect=invalid_inputs + [valid_input]):
         assert io_handler.read_operation("Enter a number: ") == 4321
 
 def test_write_print():
@@ -29,13 +39,18 @@ def test_read_choice_valid():
     io_handler = IOHandler()
     choices = {"1": "Option 1", "2": "Option 2"}
     with patch('builtins.input', side_effect=['1']):
-        assert io_handler.read_choice("Select an option:", choices) == "1"
+        assert io_handler.read_choice(choices, "Select an option:") == "1"
 
 def test_read_choice_invalid_then_valid():
     io_handler = IOHandler()
     choices = {"1": "Option 1", "2": "Option 2"}
     with patch('builtins.input', side_effect=['3', '2']):
-        assert io_handler.read_choice("Select an option:", choices) == "2"
+        assert io_handler.read_choice(choices, "Select an option:") == "2"
+
+def test_read_choice_empty_choices():
+    io_handler = IOHandler()
+    with pytest.raises(ValueError):
+        io_handler.read_choice({})
 
 def test_read_yes_no_valid():
     io_handler = IOHandler()
