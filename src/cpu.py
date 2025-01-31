@@ -3,27 +3,41 @@ from io_handler import IOHandler
 IO = IOHandler()
 
 class Halt(Exception):
-            pass
+            pass  
 
 class CPU():
     # Constants 
-    MAX = 9999
+    MAX =  9999
     MIN = -9999    
+    ACCUMULATOR_DEFAULT = 0000      
+    REGISTER_DEFAULT    = 0000
+    POINTER_DEFAULT     = 0000
 
     def __init__(self):
-        self.register = 0000 # Default for easy testing
-        self.accumulator = 0000
-        self.memory = None
+        self.boot_up()
         self.log = False
-
     
+    def boot_up(self):
+        self.accumulator = CPU.ACCUMULATOR_DEFAULT
+        self.register = CPU.REGISTER_DEFAULT
+        self.pointer = CPU.POINTER_DEFAULT
 
     def run(self):
+        self.boot_up()
+
         while (True):
             try: 
+                print(self)
                 self.operation(self.register)
+                self.pointer += 1
             except Halt:
-                break           
+                break     
+            except KeyboardInterrupt:
+                print("Keyboard Interrupted")
+                break
+
+    def __str__(self):
+        return f"CPU State\nAccumulator:{self.accumulator}\nRegister:{self.register}\n{self.pointer}\n"      
 
         
     @staticmethod
@@ -69,7 +83,7 @@ class CPU():
                     self.op_READ(operand)
                 case 11:
                     self.op_WRITE(operand)
-                
+                                
                 # Load/Store Operations
                 case 20:
                     self.op_LOAD(operand)
@@ -96,6 +110,12 @@ class CPU():
                 case 43:
                     # Raises HALT
                     self.op_HALT(operand)
+
+                # Test Operators
+                case 99:
+                    pass
+
+                #Default Error Case
                 case _:
                     raise ValueError(f"Invalid Operation: {word}")
                 
@@ -103,24 +123,23 @@ class CPU():
             print(e)
 
         except Halt:
-            raise Halt
-
+            raise Halt      
             
 
-    def op_READ(self, operand):
-        x = int(IO.read_operation(''))
-        # TODO WRITE X TO MEMORY     
-
+    def op_READ(self, operand):        
+        x = int(IO.read_operation('4-digit signed instruction | READ: '))
+        # TODO WRITE X TO MEMORY    
+        return x        
     
     def op_WRITE(self, operand):
         # TODO Get X FROM MEMORY
         IO.write(operand, log=self.log)
 
-    def op_LOAD(self, operand):
+    def op_LOAD(self, operand):        
         # TODO Get X FROM MEMORY
-        x = 1000 # Default Value until Memory Module is ready
-        if CPU._validate(x):
-            self.accumulator = x   
+        # self.register = memory.load(operand)
+        if CPU._validate(self.register):
+            self.accumulator = self.register       
 
     def op_STORE(self, operand):
         # TODO Store X into Memory
@@ -128,36 +147,31 @@ class CPU():
         pass
 
     def op_ADD(self, operand):
-        # TODO Get X from Memory
-        x = 1 # Default Value
-        # x = memory.load(operand)
-
-        self.accumulator += x
+        # TODO Get x from Memory
+        # self.register = memory.load(operand)
+        self.accumulator += self.register
 
     def op_SUBTRACT(self, operand):
         # TODO Get X from Memory
         x = 1 # Default Value
-        # x = memory.load(operand)
-
-        self.accumulator -= x
+        # self.register = memory.load(operand)
+        self.accumulator -= self.register
 
     def op_MULTIPLY(self, operand):
         # TODO Get X from Memory
         x = 1 # Default Value
         # x = memory.load(operand)
-
-        self.accumulator *= x
+        self.accumulator *= self.register
 
     def op_DIVIDE(self, operand):
         # TODO Get X from Memory
-        x = 1 # Default Value
-        # x = memory.load(operand)
-
-        self.accumulator /= x
+        # self.register = memory.load(operand)
+        self.accumulator /= self.register
 
     def op_BRANCH(self, operand):
         # TODO Branch using memory module..?
-        pass
+        self.register = operand
+        # memory.branch(self.register)
 
     def op_BRANCHNEG(self, operand):
         if self.accumulator < 0:
