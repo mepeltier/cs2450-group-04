@@ -9,6 +9,7 @@ except ImportError:
     from .memory import Memory
 
 IO = IOHandler()
+MEMORY = Memory()
 
 
 class Halt(Exception):
@@ -36,7 +37,6 @@ class CPU():
         self.boot_up()
         self.log = False
         self.halted = True
-        self.memory = Memory()
     
     def boot_up(self):
         """
@@ -202,22 +202,21 @@ class CPU():
 
         Return - None
         """        
-        x = int(IO.read_operation('4-digit signed instruction | READ: '))
-        # TODO WRITE X TO MEMORY    
-        return x        
+        self.register = int(IO.read_operation('4-digit signed instruction | READ: '))
+        MEMORY.write(operand, int(self.register))
     
     def op_WRITE(self, operand):
         """
-        Mini Method used to write data from memory at a
-        specific memory location (operand) to the CMD or STDOUT
+        Mini Method used to write data from memory at
+        a specific memory location (operand) to the CMD or STDOUT
 
         Parameters:
             operand - Memory Location (2-digits)
 
         Return - None
         """  
-        # TODO Get X FROM MEMORY
-        IO.write(operand, log=self.log)
+        self.register = MEMORY.read(operand)
+        IO.write(self.register, log=self.log)
 
     def op_LOAD(self, operand):  
         """
@@ -229,10 +228,8 @@ class CPU():
 
         Return - None
         """        
-        # TODO Get X FROM MEMORY
-        # self.register = memory.load(operand)
-        if CPU._validate(self.register):
-            self.accumulator = self.register       
+        self.register = MEMORY.read(operand)
+        self.accumulator = self.register   
 
     def op_STORE(self, operand):
         """
@@ -244,9 +241,7 @@ class CPU():
 
         Return - None
         """  
-        # TODO Store X into Memory
-        # memory.store(self.accumulator)
-        pass
+        MEMORY.write(operand, self.accumulator)
 
     def op_ADD(self, operand):
         """
@@ -258,8 +253,7 @@ class CPU():
 
         Return - None
         """  
-        # TODO Get x from Memory
-        # self.register = memory.load(operand)
+        self.register = MEMORY.read(operand)
         self.accumulator += self.register
 
     def op_SUBTRACT(self, operand):
@@ -272,9 +266,7 @@ class CPU():
 
         Return - None
         """  
-        # TODO Get X from Memory
-        x = 1 # Default Value
-        # self.register = memory.load(operand)
+        self.register = MEMORY.read(operand)
         self.accumulator -= self.register
 
     def op_MULTIPLY(self, operand):
@@ -287,9 +279,7 @@ class CPU():
 
         Return - None
         """
-        # TODO Get X from Memory
-        x = 1 # Default Value
-        # x = memory.load(operand)
+        self.register = MEMORY.read(operand)
         self.accumulator *= self.register
 
     def op_DIVIDE(self, operand):
@@ -302,8 +292,7 @@ class CPU():
 
         Return - None
         """ 
-        # TODO Get X from Memory
-        # self.register = memory.load(operand)
+        self.register = MEMORY.read(operand)
         self.accumulator /= self.register
 
     def op_BRANCH(self, operand):
@@ -315,8 +304,8 @@ class CPU():
 
         Return - None
         """
-        # TODO Branch using memory module..?
-        self.register = operand
+        self.register = MEMORY.read(operand)
+        self.pointer = self.register
         # memory.branch(self.register)
 
     def op_BRANCHNEG(self, operand):
