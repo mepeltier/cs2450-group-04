@@ -6,9 +6,16 @@ except ImportError:
 IO = IOHandler
 
 class Halt(Exception):
-            pass  
+    """
+    Exception used to halt the CPU
+    Has no data - Simply inherits from Exception
+    """
+    pass  
 
 class CPU():
+    """
+    CPU Class - Used for Implmenting the UVSim Project
+    """
     # Constants 
     MAX =  9999
     MIN = -9999    
