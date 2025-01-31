@@ -28,6 +28,7 @@ class CPU():
     ACCUMULATOR_DEFAULT = 0000      
     REGISTER_DEFAULT    = 4300
     POINTER_DEFAULT     = 0000
+    MAX_INSTRUCTION_LIMIT = 10
 
     def __init__(self):
         """
@@ -69,15 +70,24 @@ class CPU():
         """
         self.boot_up()
         data = CPU.read_file(file_location)
-        MEMORY.load_program(data)
 
+        try:
+            MEMORY.load_program(data)
+        except ValueError as e:
+            print(e)
+
+        print()
         print(MEMORY)
+        print('\n')
 
-        while (True):
+        max_instructions = CPU.MAX_INSTRUCTION_LIMIT
+        while (max_instructions > 0):
             try: 
+                self.register = MEMORY.word_to_int(MEMORY.read(self.pointer))
                 print(self)
                 self.operation(self.register)
                 self.pointer += 1
+
             except Halt:
                 self.halted = True
                 break     
@@ -88,6 +98,11 @@ class CPU():
             except KeyboardInterrupt:
                 print("Keyboard Interrupted")
                 break
+            finally:
+                max_instructions -= 1
+
+        if max_instructions == 0 :
+            print ('MAX INSTRUCTIONS LIMIT REACHED : Halting')
 
     def __str__(self):
         """
@@ -113,10 +128,10 @@ class CPU():
                 - If word is invalid, either not an intger or out of range
         """    
         if not isinstance(word, int):
-            raise ValueError('Not an Integer')
+            raise ValueError(f'VALIDATION FAIL: Not an Integer: {word}')
         
         if not CPU.MIN <= word <= CPU.MAX:
-            raise ValueError('Out of Range')
+            raise ValueError(f'VALIDATION FAIL: Out of Range: {word}')
         
         return True
 
@@ -208,8 +223,14 @@ class CPU():
                     raise ValueError(f"Invalid Operation: {word}")
 
         except Halt:
-            raise Halt      
-            
+            raise Halt 
+
+    def read_from_memory(self, address):
+        
+        self.register = MEMORY.word_to_int(MEMORY.read(address))     
+
+    def load_to_memory(self, address, value):
+        MEMORY.write(address, MEMORY.int_to_word(value))            
 
     def op_READ(self, operand):
         """
@@ -222,7 +243,7 @@ class CPU():
         Return - None
         """        
         self.register = int(IO.read_operation('4-digit signed instruction | READ: '))
-        MEMORY.write(operand, int(self.register))
+        self.load_to_memory(operand, self.register)
     
     def op_WRITE(self, operand):
         """
@@ -234,7 +255,7 @@ class CPU():
 
         Return - None
         """  
-        self.register = MEMORY.read(operand)
+        self.read_from_memory(operand)
         IO.write(self.register, log=self.log)
 
     def op_LOAD(self, operand):  
@@ -247,7 +268,7 @@ class CPU():
 
         Return - None
         """        
-        self.register = MEMORY.read(operand)
+        self.read_from_memory(operand)
         self.accumulator = self.register   
 
     def op_STORE(self, operand):
@@ -260,7 +281,7 @@ class CPU():
 
         Return - None
         """  
-        MEMORY.write(operand, self.accumulator)
+        self.load_to_memory(operand, self.accumulator)
 
     def op_ADD(self, operand):
         """
@@ -272,7 +293,7 @@ class CPU():
 
         Return - None
         """  
-        self.register = MEMORY.read(operand)
+        self.read_from_memory(operand)
         self.accumulator += self.register
 
     def op_SUBTRACT(self, operand):
@@ -285,7 +306,7 @@ class CPU():
 
         Return - None
         """  
-        self.register = MEMORY.read(operand)
+        self.read_from_memory(operand)
         self.accumulator -= self.register
 
     def op_MULTIPLY(self, operand):
@@ -298,7 +319,7 @@ class CPU():
 
         Return - None
         """
-        self.register = MEMORY.read(operand)
+        self.read_from_memory(operand)
         self.accumulator *= self.register
 
     def op_DIVIDE(self, operand):
@@ -311,7 +332,7 @@ class CPU():
 
         Return - None
         """ 
-        self.register = MEMORY.read(operand)
+        self.read_from_memory(operand)
         self.accumulator /= self.register
 
     def op_BRANCH(self, operand):
@@ -323,9 +344,8 @@ class CPU():
 
         Return - None
         """
-        self.register = MEMORY.read(operand)
+        self.read_from_memory(operand)
         self.pointer = self.register
-        # memory.branch(self.register)
 
     def op_BRANCHNEG(self, operand):
         """
@@ -369,7 +389,7 @@ class CPU():
 
 def main():
     cpu = CPU()
-    cpu.run('instructions_test.txt')    
+    cpu.run('Test1.txt')    
 
     
         
