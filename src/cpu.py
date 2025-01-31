@@ -407,10 +407,7 @@ class CPU():
 def main():
     cpu = CPU()
     cpu.run('Test1.txt')    
-
-    
-        
-
+         
 if __name__ == "__main__":
     main()
         
