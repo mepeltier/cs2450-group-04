@@ -17,17 +17,27 @@ class CPU():
     POINTER_DEFAULT     = 0000
 
     def __init__(self):
+        """
+        Initialize CPU module, using the boot_up function and default values to clear
+        """
         self.boot_up()
         self.log = False
         self.halted = True
     
     def boot_up(self):
+        """
+        Clears all values to their original defaults, thus allowing the CPU to be reset and restarted
+        """
         self.accumulator = CPU.ACCUMULATOR_DEFAULT
         self.register = CPU.REGISTER_DEFAULT
         self.pointer = CPU.POINTER_DEFAULT
         self.halted = False
 
     def run(self):
+        """
+        Creates loop that allows the CPU to run continuously
+        Will self-increment to next instruction in memory and read until halted
+        """
         self.boot_up()
 
         while (True):
@@ -47,11 +57,28 @@ class CPU():
                 break
 
     def __str__(self):
+        """
+        Returns a string of the current state of the CPU
+        """
         return f"CPU State\nAccumulator:{self.accumulator}\nRegister:{self.register}\n{self.pointer}\n"      
 
         
     @staticmethod
-    def _validate(word):        
+    def _validate(word):    
+        """
+        Static Method used to validate a word
+        Word must be a signed 4-digit integer
+
+        Parameters:
+            word (int)
+
+        Return Values:
+            True - If word is valid
+
+        Raises:
+            ValueError: 
+                - If word is invalid, either not an intger or out of range
+        """    
         if not isinstance(word, int):
             raise ValueError('Not an Integer')
         
@@ -71,6 +98,24 @@ class CPU():
 
     
     def operation(self, word):
+        """
+        Function to run a specific instruction (word)
+        Instruction function is then ran
+
+        Parameters:
+            word - Is validated
+
+        Return Values:
+            None
+
+        Raises:
+            ValueError: 
+                - If Operation is negative
+                - If Operation is < 100 
+                - If Operation is not a valid instruction
+            Halt:
+                - Instructs the machine to halt if certain conditions are met
+        """
         try:
             CPU._validate(word)              
        
@@ -133,62 +178,171 @@ class CPU():
             raise Halt      
             
 
-    def op_READ(self, operand):        
+    def op_READ(self, operand):
+        """
+        Mini Method used to read a 4-digit signed instruction from the CMD
+        to a specific memory location (operand)
+
+        Parameters:
+            operand - Memory Location (2-digits)
+
+        Return - None
+        """        
         x = int(IO.read_operation('4-digit signed instruction | READ: '))
         # TODO WRITE X TO MEMORY    
         return x        
     
     def op_WRITE(self, operand):
+        """
+        Mini Method used to write data from memory at a
+        specific memory location (operand) to the CMD or STDOUT
+
+        Parameters:
+            operand - Memory Location (2-digits)
+
+        Return - None
+        """  
         # TODO Get X FROM MEMORY
         IO.write(operand, log=self.log)
 
-    def op_LOAD(self, operand):        
+    def op_LOAD(self, operand):  
+        """
+        Mini Method used to load a word from memory at the operand location
+        to the accumulator
+
+        Parameters:
+            operand - Memory Location (2-digits)
+
+        Return - None
+        """        
         # TODO Get X FROM MEMORY
         # self.register = memory.load(operand)
         if CPU._validate(self.register):
             self.accumulator = self.register       
 
     def op_STORE(self, operand):
+        """
+        Mini Method used to store data from the accumulator to a specific
+        location in memory (operand)
+
+        Parameters:
+            operand - Memory Location (2-digits)
+
+        Return - None
+        """  
         # TODO Store X into Memory
         # memory.store(self.accumulator)
         pass
 
     def op_ADD(self, operand):
+        """
+        Mini Method used to ADD a word from the data at 
+        a specific memory location (operand) to the accumulator
+
+        Parameters:
+            operand - Memory Location (2-digits)
+
+        Return - None
+        """  
         # TODO Get x from Memory
         # self.register = memory.load(operand)
         self.accumulator += self.register
 
     def op_SUBTRACT(self, operand):
+        """
+        Mini Method used to SUBTRACT a word from the data at 
+        a specific memory location (operand) to the accumulator
+
+        Parameters:
+            operand - Memory Location (2-digits)
+
+        Return - None
+        """  
         # TODO Get X from Memory
         x = 1 # Default Value
         # self.register = memory.load(operand)
         self.accumulator -= self.register
 
     def op_MULTIPLY(self, operand):
+        """
+        Mini Method used to MULTIPLY a word from the data at 
+        a specific memory location (operand) to the accumulator
+
+        Parameters:
+            operand - Memory Location (2-digits)
+
+        Return - None
+        """
         # TODO Get X from Memory
         x = 1 # Default Value
         # x = memory.load(operand)
         self.accumulator *= self.register
 
     def op_DIVIDE(self, operand):
+        """
+        Mini Method used to DIVIDE a word from the data at 
+        a specific memory location (operand) to the accumulator
+
+        Parameters:
+            operand - Memory Location (2-digits)
+
+        Return - None
+        """ 
         # TODO Get X from Memory
         # self.register = memory.load(operand)
         self.accumulator /= self.register
 
     def op_BRANCH(self, operand):
+        """
+        Mini Method used to branch to the location in memory of the operand
+
+        Parameters:
+            operand - Memory Location (2-digits)
+
+        Return - None
+        """
         # TODO Branch using memory module..?
         self.register = operand
         # memory.branch(self.register)
 
     def op_BRANCHNEG(self, operand):
+        """
+        Mini Method used to branch to the location in memory of the operand
+        IF the accumulator is ZERO ONLY
+
+        Parameters:
+            operand - Memory Location (2-digits)
+
+        Return - None
+        """
         if self.accumulator < 0:
             self.op_BRANCH(operand)
 
     def op_BRANCHZERO(self, operand):
+        """
+        Mini Method used to branch to the location in memory of the operand
+        IF the accumulator is NEGATIVE ONLY
+
+        Parameters:
+            operand - Memory Location (2-digits)
+
+        Return - None
+        """  
         if self.accumulator == 0:
             self.op_BRANCH(operand)
 
-    def op_HALT(self, operand):        
+    def op_HALT(self, operand): 
+        """
+        Mini Method used to halt the CPU
+
+        Parameters:
+            operand [UNUSED] - Memory Location (2-digits)            
+
+        Raises:
+            - Halt
+
+        Return - None
+        """         
         raise Halt       
 
 def main():
