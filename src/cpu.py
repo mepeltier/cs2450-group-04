@@ -65,6 +65,9 @@ class CPU():
         Creates loop that allows the CPU to run continuously
         Will self-increment to next instruction in memory and read until halted
 
+        Reads from file_location and saves all the instructions in the memory module
+        Memory is then executed
+
         Parameters:
             file_location - file location to read instructions into memory
         """
@@ -108,7 +111,7 @@ class CPU():
         """
         Returns a string of the current state of the CPU
         """
-        return f"CPU State\nAccumulator:{self.accumulator}\nRegister:{self.register}\n{self.pointer}\n"      
+        return f"CPU State\nAccumulator:{self.accumulator}\nRegister:{self.register}\nPointer:{self.pointer}\n"      
 
         
     @staticmethod
@@ -226,10 +229,24 @@ class CPU():
             raise Halt 
 
     def read_from_memory(self, address):
-        
+        """
+        Transition method to allow for str words to be read into the register
+        and then saved as an integer in the register
+
+        Parameters:
+            - address : 2-digit address to read from in memory
+        """
         self.register = MEMORY.word_to_int(MEMORY.read(address))     
 
-    def load_to_memory(self, address, value):
+    def load_to_memory(self, address, value):        
+        """
+        Transition method to allow for integer data in the regsiter
+        to be read into the address in the memory module
+
+        Parameters:
+            - address : 2-digit address to read from in memory
+            - value : data to be saved in memory - Usually the register
+        """
         MEMORY.write(address, MEMORY.int_to_word(value))            
 
     def op_READ(self, operand):
