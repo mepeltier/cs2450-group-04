@@ -11,7 +11,6 @@ except ImportError:
 IO = IOHandler()
 MEMORY = Memory()
 
-
 class Halt(Exception):
     """
     Exception used to halt the CPU
@@ -27,7 +26,7 @@ class CPU():
     MAX =  9999
     MIN = -9999    
     ACCUMULATOR_DEFAULT = 0000      
-    REGISTER_DEFAULT    = 0000
+    REGISTER_DEFAULT    = 4300
     POINTER_DEFAULT     = 0000
 
     def __init__(self):
@@ -47,12 +46,32 @@ class CPU():
         self.pointer = CPU.POINTER_DEFAULT
         self.halted = False
 
-    def run(self):
+    @staticmethod
+    def read_file(file_location):
+        """
+        Static method that takes a relative file location and
+        returns a list of instructions to be passed to the memory module
+        """
+        data = []
+        with open(file_location, 'r') as file:
+            for line in file:
+                data.append(line.strip())
+        return data
+
+
+    def run(self, file_location):
         """
         Creates loop that allows the CPU to run continuously
         Will self-increment to next instruction in memory and read until halted
+
+        Parameters:
+            file_location - file location to read instructions into memory
         """
         self.boot_up()
+        data = CPU.read_file(file_location)
+        MEMORY.load_program(data)
+
+        print(MEMORY)
 
         while (True):
             try: 
@@ -349,12 +368,11 @@ class CPU():
         raise Halt       
 
 def main():
-    try:
-        cpu = CPU()
-        cpu.operation(4300)
-    except Halt:
-        print("Successfully halted without error")
+    cpu = CPU()
+    cpu.run('instructions_test.txt')    
+
     
+        
 
 if __name__ == "__main__":
     main()
