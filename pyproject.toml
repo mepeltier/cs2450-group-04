@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "cs2450-group-04"
+version = "0.1.0"
+description = ""
+authors = ["Micah Peltier <micah6_8@yahoo.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+
+[tool.poetry.dev-dependencies]
+pytest = "^8.3.4"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
