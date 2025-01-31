@@ -3,7 +3,13 @@ try:
 except ImportError:
     from .io_handler import IOHandler
 
-IO = IOHandler
+try:
+    from memory import Memory
+except ImportError:
+    from .memory import Memory
+
+IO = IOHandler()
+
 
 class Halt(Exception):
     """
@@ -30,6 +36,7 @@ class CPU():
         self.boot_up()
         self.log = False
         self.halted = True
+        self.memory = Memory()
     
     def boot_up(self):
         """
@@ -353,8 +360,11 @@ class CPU():
         raise Halt       
 
 def main():
-    cpu = CPU()
-    cpu.operation(4300)
+    try:
+        cpu = CPU()
+        cpu.operation(4300)
+    except Halt:
+        print("Successfully halted without error")
     
 
 if __name__ == "__main__":
