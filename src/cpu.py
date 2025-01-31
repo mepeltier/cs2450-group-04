@@ -1,6 +1,9 @@
-from io_handler import IOHandler 
+try:
+    from io_handler import IOHandler
+except ImportError:
+    from .io_handler import IOHandler
 
-IO = IOHandler()
+IO = IOHandler
 
 class Halt(Exception):
             pass  
@@ -186,7 +189,7 @@ class CPU():
 
 def main():
     cpu = CPU()
-    cpu.run()
+    cpu.operation(4300)
     
 
 if __name__ == "__main__":
