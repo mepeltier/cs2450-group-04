@@ -62,8 +62,15 @@ class CPU():
         data = []
         with open(file_location, 'r') as file:
             for line in file:
-                data.append(line.strip())
+                word = line.split()
+                data.append(word[0].strip())
         return data
+    
+    def _get_memory(self):
+        return MEMORY
+    
+    def _get_IO(self):
+        return IO
     
     def print_memory_states_DEV_ONLY(self):
         """

@@ -1,12 +1,13 @@
 import pytest # type: ignore
 import unittest
-from src.cpu import CPU
+from src.cpu import CPU, MEMORY, IO
 from src.cpu import Halt
 
 class TestCPU(unittest.TestCase):
 
     def setUp(self):
-        self.cpu = CPU()
+        self.cpu = CPU()            
+        MEMORY.load_program(self.cpu.read_file('tests/cpu_test.txt'))
 
     def tearDown(self):
         pass        
@@ -61,6 +62,10 @@ class TestCPU(unittest.TestCase):
             with pytest.raises(ValueError):
                 CPU.decypher_instruction(i)
 
+    def test_read_file(self):
+        self.cpu.read_from_memory(10 - 1) # Line 10 on .txt file but memory is zero-indexed
+        assert self.cpu.register == 8 # Memory address contains the numer '+0008'
+
     def test_halt(self):
         with pytest.raises(Halt):
             self.cpu.operation(4300)
@@ -77,14 +82,16 @@ class TestCPU(unittest.TestCase):
     def test_STORE(self):
         pass
 
-    def test_ARITHMATIC(self):
-        # ADD
+    def test_ADD(self):
+        pass
 
-        # SUBTRACT
+    def test_SUBTRACT(self):
+        pass
 
-        # MULTIPLY
+    def test_MULTIPLY(self):
+        pass
 
-        # DIVIDE
+    def test_DIVIDE(self):
         pass
 
     def test_BRANCH(self):

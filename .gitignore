@@ -6,4 +6,5 @@ __pycache__/
 .vscode/
 .pytest_cache/
 __pycache__/
+fake_test_cpu.py
 
