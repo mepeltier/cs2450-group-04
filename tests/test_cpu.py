@@ -114,13 +114,22 @@ class TestCPU(unittest.TestCase):
         assert self.cpu.accumulator == 16 / 8
 
     def test_BRANCH(self):
-        pass
+        self.cpu.operation(4059)
+        assert self.cpu.pointer == 59
 
     def test_BRANCHNEG(self):
-        pass
+        self.cpu.operation(2010) # Load #0008 from [10] into accumulator
+        self.cpu.operation(3110) # Subtract #0008 from accumulator (0)
+        self.cpu.operation(4259) # Branches to 59 if accumulator is ZERO
+        assert self.cpu.pointer == 59
+        
 
     def test_BRANCHZERO(self):
-        pass
+        self.cpu.operation(2010) # Load #0008 from [10] into accumulator
+        self.cpu.operation(3111) # Subtract #0016 from accumulator (-8)
+        self.cpu.operation(4159) # Branches to 59 if accumulator is NEGATIVE
+        assert self.cpu.pointer == 59
+        
 
     def test_FULL_PROGRAM(self):
         cpu = CPU()
