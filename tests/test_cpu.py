@@ -7,7 +7,7 @@ class TestCPU(unittest.TestCase):
 
     def setUp(self):
         self.cpu = CPU()            
-        MEMORY.load_program(self.cpu.read_file('tests/cpu_test.txt'))
+        MEMORY.load_program(CPU.read_file('tests/cpu_test.txt', fix_index=True))
 
     def tearDown(self):
         pass        
@@ -63,7 +63,7 @@ class TestCPU(unittest.TestCase):
                 CPU.decypher_instruction(i)
 
     def test_read_file(self):
-        self.cpu.read_from_memory(10 - 1) # Line 10 on .txt file but memory is zero-indexed
+        self.cpu.read_from_memory(10) # Line 10 on .txt file - Memory file has index fixed in tests
         assert self.cpu.register == 8 # Memory address contains the numer '+0008'
 
     def test_halt(self):
@@ -77,14 +77,14 @@ class TestCPU(unittest.TestCase):
         pass
 
     def test_LOAD(self):
-        self.cpu.operation(2009) # Load from [09] line 10
+        self.cpu.operation(2010) # Load from [10] 
         assert self.cpu.accumulator == 8
 
-        self.cpu.operation(2010) # Load from [10] line 11
+        self.cpu.operation(2011) # Load from [11] 
         assert self.cpu.accumulator == 16
 
     def test_STORE(self):
-        self.cpu.operation(2009) # Load #0008 from [09] into accumulator
+        self.cpu.operation(2010) # Load #0008 from [10] into accumulator
         self.cpu.operation(2100) # Store #0008 into [00] in Memory
         assert MEMORY.word_to_int(MEMORY.read(00)) == 8
 
@@ -92,23 +92,23 @@ class TestCPU(unittest.TestCase):
         assert self.cpu.register == 8
 
     def test_ADD(self):
-        self.cpu.operation(2009) # Load #0008 from [09] into accumulator
-        self.cpu.operation(3010) # Add #0016 from [10] into accumulator
+        self.cpu.operation(2010) # Load #0008 from [10] into accumulator
+        self.cpu.operation(3011) # Add #0016 from [11] into accumulator
         assert self.cpu.accumulator == 8 + 16
 
     def test_SUBTRACT(self):
-        self.cpu.operation(2009) # Load #0008 from [09] into accumulator
-        self.cpu.operation(3111) # Subtract #0007 from [11] into accumulator
+        self.cpu.operation(2010) # Load #0008 from [10] into accumulator
+        self.cpu.operation(3112) # Subtract #0007 from [12] into accumulator
         assert self.cpu.accumulator == 8 - 7
 
     def test_MULTIPLY(self):
-        self.cpu.operation(2009) # Load #0008 from [09] into accumulator
-        self.cpu.operation(3311) # Multiply #0007 from [11] into accumulator
+        self.cpu.operation(2010) # Load #0008 from [10] into accumulator
+        self.cpu.operation(3312) # Multiply #0007 from [12] into accumulator
         assert self.cpu.accumulator == 8 * 7
 
     def test_DIVIDE(self):
-        self.cpu.operation(2010) # Load #0016 from [10] into accumulator
-        self.cpu.operation(3209) # Divide by #0008 from [09]
+        self.cpu.operation(2011) # Load #0016 from [11] into accumulator
+        self.cpu.operation(3210) # Divide by #0008 from [10]
         assert self.cpu.accumulator == 16 / 8
 
     def test_BRANCH(self):
@@ -116,9 +116,13 @@ class TestCPU(unittest.TestCase):
 
     def test_BRANCHNEG(self):
         pass
-    
+
     def test_BRANCHZERO(self):
         pass
+
+    def test_FULL_PROGRAM(self):
+        self.cpu.operation(4050) # Branches to 50 in memory
+        
 
 
 

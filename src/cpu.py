@@ -54,12 +54,16 @@ class CPU():
         self.halted = False
 
     @staticmethod
-    def read_file(file_location):
+    def read_file(file_location, fix_index=False):
         """
         Static method that takes a relative file location and
         returns a list of instructions to be passed to the memory module
         """
         data = []
+
+        if fix_index:
+            data.append('+0000')
+            
         with open(file_location, 'r') as file:
             for line in file:
                 word = line.split()
