@@ -77,10 +77,19 @@ class TestCPU(unittest.TestCase):
         pass
 
     def test_LOAD(self):
-        pass
+        self.cpu.operation(2009) # Load from [09] line 10
+        assert self.cpu.accumulator == 8
+
+        self.cpu.operation(2010) # Load from [10] line 11
+        assert self.cpu.accumulator == 16
 
     def test_STORE(self):
-        pass
+        self.cpu.operation(2009) # Load #0008 from [09] into accumulator
+        self.cpu.operation(2100) # Store #0008 into [00] in Memory
+        assert MEMORY.word_to_int(MEMORY.read(00)) == 8
+
+        self.cpu.operation(2000) # Load #0008 from [00] into register
+        assert self.cpu.register == 8
 
     def test_ADD(self):
         pass
