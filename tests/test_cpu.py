@@ -92,23 +92,34 @@ class TestCPU(unittest.TestCase):
         assert self.cpu.register == 8
 
     def test_ADD(self):
-        pass
+        self.cpu.operation(2009) # Load #0008 from [09] into accumulator
+        self.cpu.operation(3010) # Add #0016 from [10] into accumulator
+        assert self.cpu.accumulator == 8 + 16
 
     def test_SUBTRACT(self):
-        pass
+        self.cpu.operation(2009) # Load #0008 from [09] into accumulator
+        self.cpu.operation(3111) # Subtract #0007 from [11] into accumulator
+        assert self.cpu.accumulator == 8 - 7
 
     def test_MULTIPLY(self):
-        pass
+        self.cpu.operation(2009) # Load #0008 from [09] into accumulator
+        self.cpu.operation(3311) # Multiply #0007 from [11] into accumulator
+        assert self.cpu.accumulator == 8 * 7
 
     def test_DIVIDE(self):
-        pass
+        self.cpu.operation(2010) # Load #0016 from [10] into accumulator
+        self.cpu.operation(3209) # Divide by #0008 from [09]
+        assert self.cpu.accumulator == 16 / 8
 
     def test_BRANCH(self):
         pass
 
-    def test_READ(self):
+    def test_BRANCHNEG(self):
         pass
     
+    def test_BRANCHZERO(self):
+        pass
+
 
 
       
