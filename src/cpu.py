@@ -8,6 +8,9 @@ try:
 except ImportError:
     from .memory import Memory
 
+from termcolor import colored
+import difflib
+
 IO = IOHandler()
 MEMORY = Memory()
 
@@ -26,9 +29,9 @@ class CPU():
     MAX =  9999
     MIN = -9999    
     ACCUMULATOR_DEFAULT = 0000      
-    REGISTER_DEFAULT    = 4300
+    REGISTER_DEFAULT    = 4300 # Halt command is used as Default | Should be changed eventually
     POINTER_DEFAULT     = 0000
-    MAX_INSTRUCTION_LIMIT = 10
+    MAX_INSTRUCTION_LIMIT = 10 # Used for testing purposes - Need to force the CPU to halt in case things go wrong
 
     def __init__(self):
         """
@@ -37,6 +40,9 @@ class CPU():
         self.boot_up()
         self.log = False
         self.halted = True
+
+        self.previous_memory_state = " "
+        self.current_memory_state = " "
     
     def boot_up(self):
         """
@@ -58,6 +64,31 @@ class CPU():
             for line in file:
                 data.append(line.strip())
         return data
+    
+    def print_memory_states_DEV_ONLY(self):
+        """
+        Prints the current state of the CPU/Memory with differences highlighted from the previous state
+        Green background: Added text
+        """
+        prev_text = self.previous_memory_state
+        curr_text = self.current_memory_state
+
+        if curr_text is None:
+            return
+        
+        if prev_text is None:
+            print(curr_text)
+            return          
+        
+        matcher = difflib.SequenceMatcher(None, prev_text, curr_text)        
+        
+        for tag, i1, i2, j1, j2 in matcher.get_opcodes():
+            if tag == 'equal':
+                # Print unchanged text normally
+                print(curr_text[j1:j2], end='')
+            elif tag in ['replace', 'insert']:
+                # Print new/changed text in green
+                print(colored(curr_text[j1:j2], 'green'), end='')     
 
 
     def run(self, file_location):
@@ -78,16 +109,17 @@ class CPU():
             MEMORY.load_program(data)
         except ValueError as e:
             print(e)
-
-        print()
-        print(MEMORY)
-        print('\n')
+            print("Halting Loading : Invalid word is given")
+                   
 
         max_instructions = CPU.MAX_INSTRUCTION_LIMIT
         while (max_instructions > 0):
+            self.previous_memory_state = self.current_memory_state
+            self.current_memory_state = str(MEMORY) + '\n'  + str(self) + '\n'       
+            self.print_memory_states_DEV_ONLY()
+                    
             try: 
                 self.register = MEMORY.word_to_int(MEMORY.read(self.pointer))
-                print(self)
                 self.operation(self.register)
                 self.pointer += 1
 
@@ -101,6 +133,7 @@ class CPU():
             except KeyboardInterrupt:
                 print("Keyboard Interrupted")
                 break
+
             finally:
                 max_instructions -= 1
 
