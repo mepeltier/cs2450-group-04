@@ -10,7 +10,7 @@
 +0008 # Data used for Tests
 +0016 #
 +0007 # 
-+0005 # Do not edit these four Lines or tests will fail!
++0005 # Do not edit these 4 Lines or tests will fail!
 +0000
 +0000
 +0000
@@ -22,13 +22,20 @@
 +0000
 +0000
 +0000
++0016 # Number that will be square rooted
 +0000
 +0000
 +0000
 +0000
-+0000
++0005 # Data Storage for Full Test Program
++0007
++0008 
 +0000 
-+0000 # Data Storage for Full Test Program
++0016
++0025
++0100
++0000 # 15 will be stored here # 1 will be stored here
+-0003 # Used for division
 +0000
 +0000
 +0000
@@ -40,12 +47,53 @@
 +0000
 +0000
 +0000
++2031 # Load 7 # Full Test Program starts here
++3032 # Add 7 + 8 = 15
++2137 # Store 37
++2034 # Load 16
++3137 # Subtract 16 - 15 = 1
++2137 # Store 1
++3137 # Subtract 1 - 1 = 0
++4265 # Branch_Zero to 65
++1134 # Will print 16 if branch_zero fails
++4300 # Halt 
++0000 
++0000 
++0000 
++0000 
 +0000
++4070 # Unconditional Jump to 70
++1135 # Will print 25 if branch fails
++4300 # Halt
++0000 
++0000 
++2034 # Load 16 
++3135 # 16 - 25 = -9
++4175 # Branch_Neg to 75
++1131 # Will print 7 if branch_neg fails
++4300 # Halt (will be skipped)
++2149 # Stores -9
++1149 # Prints -9 to user 
++3238 # -9 / -3 = 3
++3335 # 3 * 25 = 75
++3335 # 75 * 25 = 1875
++2185 # Stores 1875
++1185 # Prints 1875
++4300
++0000 
++0000 
++0000 
++0000 
++0000 
++0000 
++0000 
++0000 
++0000 
++0000 
++0000 
++0000 
++0000 
++0000 
++0000 
++0000 
 +0000
-+0000
-+0000
-+0000
-+0000
-+0000
-+0000 #
-+0000 # Full Test Program starts header

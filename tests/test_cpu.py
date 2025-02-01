@@ -1,7 +1,9 @@
 import pytest # type: ignore
 import unittest
-from src.cpu import CPU, MEMORY, IO
-from src.cpu import Halt
+
+if __name__ != "__main__":
+    from src.cpu import CPU, MEMORY, IO
+    from src.cpu import Halt
 
 class TestCPU(unittest.TestCase):
 
@@ -121,8 +123,18 @@ class TestCPU(unittest.TestCase):
         pass
 
     def test_FULL_PROGRAM(self):
-        self.cpu.operation(4050) # Branches to 50 in memory
+        cpu = CPU()
+        cpu.run('tests/cpu_test.txt', fix_index=True)
+        final_data = cpu.read_file('tests/cpu_test_final.txt')
+
+        cpu.read_from_memory(85)
+        assert 1875 == cpu.register
         
+        for i, word in enumerate(final_data):
+            cpu.read_from_memory(i)
+            assert MEMORY.word_to_int(word) == cpu.register
+
+
 
 
 

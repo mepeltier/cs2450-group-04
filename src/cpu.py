@@ -8,7 +8,7 @@ try:
 except ImportError:
     from .memory import Memory
 
-from termcolor import colored
+from termcolor import colored # type: ignore
 import difflib
 
 IO = IOHandler()
@@ -28,10 +28,10 @@ class CPU():
     # Constants 
     MAX =  9999
     MIN = -9999    
-    ACCUMULATOR_DEFAULT = 0000      
-    REGISTER_DEFAULT    = 4300 # Halt command is used as Default | Should be changed eventually
-    POINTER_DEFAULT     = 0000
-    MAX_INSTRUCTION_LIMIT = 10 # Used for testing purposes - Need to force the CPU to halt in case things go wrong
+    ACCUMULATOR_DEFAULT   = 0000      
+    REGISTER_DEFAULT      = 4300 # Halt command is used as Default | Should be changed eventually
+    POINTER_DEFAULT       = 0000
+    MAX_INSTRUCTION_LIMIT = 30  # Used for testing purposes - Need to force the CPU to halt in case things go wrong
 
     def __init__(self):
         """
@@ -62,8 +62,8 @@ class CPU():
         data = []
 
         if fix_index:
-            data.append('+0000')
-            
+            data.append('+4050') # Sets first instruction to jump to [50]
+
         with open(file_location, 'r') as file:
             for line in file:
                 word = line.split()
@@ -102,7 +102,7 @@ class CPU():
                 print(colored(curr_text[j1:j2], 'green'), end='')     
 
 
-    def run(self, file_location):
+    def run(self, file_location, fix_index=False):
         """
         Creates loop that allows the CPU to run continuously
         Will self-increment to next instruction in memory and read until halted
@@ -114,7 +114,7 @@ class CPU():
             file_location - file location to read instructions into memory
         """
         self.boot_up()
-        data = CPU.read_file(file_location)
+        data = CPU.read_file(file_location, fix_index=fix_index)
 
         try:
             MEMORY.load_program(data)
@@ -131,8 +131,8 @@ class CPU():
                     
             try: 
                 self.register = MEMORY.word_to_int(MEMORY.read(self.pointer))
-                self.operation(self.register)
                 self.pointer += 1
+                self.operation(self.register)
 
             except Halt:
                 self.halted = True
@@ -361,7 +361,7 @@ class CPU():
 
         Return - None
         """  
-        self.load_to_memory(operand, self.accumulator)
+        self.load_to_memory(operand, int(self.accumulator))
 
     def op_ADD(self, operand):
         """
@@ -424,8 +424,8 @@ class CPU():
 
         Return - None
         """
-        self.read_from_memory(operand)
-        self.pointer = self.register
+        # self.read_from_memory(operand)
+        self.pointer = operand
 
     def op_BRANCHNEG(self, operand):
         """
