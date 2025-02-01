@@ -147,6 +147,37 @@ class CPU():
     #             print(e)
     #     return wrapper
 
+    @staticmethod
+    def decypher_instruction(word):
+        """
+        Decypher instruction is a static method used to split a 4 digit instruction
+        into an operator an operand
+        
+        ASSUMES _validate(word) has been ran before hand. This is because some words are not valid 
+        instructions but are valid 4-digit 'words'
+
+        Parameters:
+            - word : validated word is passed to split 4 digits into the first two and last two digits
+
+        Raises:
+            ValueError : If a word is not a valid instruction (negative or below 1000)
+        """
+
+        if word >= 1000:
+            operator = word // 100
+
+        elif word < 0:
+            # Not sure what to do with negative instructions yet
+            raise ValueError(f"Negative Operation: {word}")
+
+        else: 
+            #Shouldn't ever actually occur, because all valid operations start at '10xx'
+            raise ValueError(f"Invalid Operation: {word} | No operations exist under 1000")
+
+        operand = word % 100
+
+        return (operator, operand)
+
     
     def operation(self, word):
         """
@@ -168,20 +199,8 @@ class CPU():
                 - Instructs the machine to halt if certain conditions are met
         """
         try:
-            CPU._validate(word)              
-       
-            if word >= 100 and word >= 0:
-                operator = word // 100
-
-            elif word < 0:
-                # Not sure what to do with negative operators yet
-                raise ValueError(f"Negative Operation: {word}")
-
-            else: 
-                #Shouldn't ever actually occur, because all valid operations start at '10xx'
-                raise ValueError(f"Invalid Operation: {word} | No operations exist under 1000")
-
-            operand = word % 100
+            CPU._validate(word)       
+            operator, operand = CPU.decypher_instruction(word)
 
             match operator:
                 # I/O Operations
