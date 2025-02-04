@@ -1,4 +1,4 @@
-import pytest
+import pytest # type: ignore
 from src.io_handler import IOHandler
 from unittest.mock import patch, mock_open
 

@@ -1,4 +1,4 @@
-import pytest
+import pytest # type: ignore
 from src.memory import Memory
 
 def test_memory_initialization():
