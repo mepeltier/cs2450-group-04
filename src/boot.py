@@ -1,0 +1,65 @@
+"""Class to parse a BasicML file into Memory."""
+
+import logging
+from typing import List, Optional
+from src.cpu import CPU
+from src.io_handler import IOHandler
+from src.memory import Memory
+
+LOGGER = logging.getLogger(__name__)
+
+
+class Bootstrapper:
+    """Class to bootstrap the UVSim module.
+
+    Parse a file containing BasicML instructions and load it into memory.
+    """
+
+    def __init__(self) -> None:
+        """Boostrap CPU, Memory, IOHandler."""
+        self.memory = Memory()
+        self.io = IOHandler()
+        self.cpu = CPU(self.memory, self.io)
+
+    def load_program(self, file_name: str, fix_index: Optional[bool] = False):
+        """Load a program into memory starting at address 0.
+
+        Parameters:
+        program (list): List of strings representing BasicML instructions
+
+        Raises:
+        ValueError: If program is too large for memory
+        """
+        with open(file_name, "r") as file:
+            program: List[str] = []
+
+            # Not sure what this is useful for, but I included it from the original CPU's method
+            if fix_index:
+                program.append("+4050")
+
+            for line in file.readlines():
+                program.append(line)
+
+            try:
+                for addr, instruction in enumerate(program):
+
+                    self.memory.write(addr, instruction.split()[0].rstrip())
+
+            except IndexError as error:
+                LOGGER.error(
+                    "Invalid index when loading program: \n%s", error.__str__()
+                )
+                return
+
+            except ValueError as error:
+                LOGGER.error(
+                    "Invalid instruction in file: %s\n%s\n\n" "Zeroing out register %s",
+                    addr,
+                    instruction,
+                    error.__str__(),
+                )
+                self.memory.write(addr, "+0000")
+
+    def run(self):
+        """Run the CPU."""
+        self.cpu.run()
