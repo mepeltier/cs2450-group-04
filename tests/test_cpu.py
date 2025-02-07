@@ -12,7 +12,7 @@ class TestCPU(unittest.TestCase):
     def setUp(self):
         boot = Bootstrapper()
         self.cpu = boot.cpu
-        boot.load_program("tests/cpu_test.txt", fix_index=True)
+        boot.load_program("tests/cpu_test.txt")
 
     def tearDown(self):
         pass
@@ -69,13 +69,7 @@ class TestCPU(unittest.TestCase):
     def test_halt(self):
         with pytest.raises(Halt):
             self.cpu.operation(4300)
-
-    def test_READ(self):
-        pass
-
-    def test_WRITE(self):
-        pass
-
+    
     def test_LOAD(self):
         self.cpu.operation(2010)  # Load from [10]
         assert self.cpu.accumulator == 8
@@ -112,7 +106,7 @@ class TestCPU(unittest.TestCase):
         assert self.cpu.accumulator == 16 / 8
 
     def test_BRANCH(self):
-        self.cpu.operation(4059)
+        self.cpu.operation(4059)  # Tests that the CPU has it's pointer updated to 59, should NOT increment after jumping
         assert self.cpu.pointer == 59
 
     def test_BRANCHNEG(self):
@@ -130,7 +124,7 @@ class TestCPU(unittest.TestCase):
     def test_FULL_PROGRAM(self):
         boot = Bootstrapper()
 
-        boot.load_program("tests/cpu_test.txt", fix_index=True)
+        boot.load_program("tests/cpu_test.txt")
         boot.run()
         with open("tests/cpu_test_final.txt") as file:
             final_data = file.readlines()

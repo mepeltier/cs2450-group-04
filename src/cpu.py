@@ -32,11 +32,11 @@ class CPU:
     MIN = -9999
     ACCUMULATOR_DEFAULT = 0000
     REGISTER_DEFAULT = (
-        4300  # Halt command is used as Default | Should be changed eventually
+        4300  # Halt command is used as Default
     )
     POINTER_DEFAULT = 0000
     # Used for testing purposes - Need to force the CPU to halt in case things go wrong
-    MAX_INSTRUCTION_LIMIT = 30
+    MAX_INSTRUCTION_LIMIT = 100
 
     def __init__(
         self,
@@ -60,23 +60,7 @@ class CPU:
         self.register = CPU.REGISTER_DEFAULT
         self.pointer = CPU.POINTER_DEFAULT
         self.halted = False
-
-    # @staticmethod
-    # def read_file(file_location, fix_index=False):
-    #     """Static method that takes a relative file location and
-    #     returns a list of instructions to be passed to the memory module.
-    #     """
-    #     data = []
-
-    #     if fix_index:
-    #         data.append("+4050")  # Sets first instruction to jump to [50]
-
-    #     with open(file_location, "r") as file:
-    #         for line in file:
-    #             word = line.split()
-    #             data.append(word[0].strip())
-    #     return data
-
+   
     def _get_memory(self):
         return self.memory
 
@@ -117,15 +101,9 @@ class CPU:
         Parameters:
             file_location - file location to read instructions into memory
         """
-        self.boot_up()
-        # data = CPU.read_file(file_location, fix_index=fix_index)
-
-        # try:
-        #     MEMORY.load_program(data)
-        # except ValueError as e:
-        #     print(e)
-        #     print("Halting Loading : Invalid word is given")
+        self.boot_up()        
         max_instructions = CPU.MAX_INSTRUCTION_LIMIT
+
         while max_instructions > 0:
             self.previous_memory_state = self.current_memory_state
             self.current_memory_state = str(self.memory) + "\n" + str(self) + "\n"
@@ -384,7 +362,6 @@ class CPU:
 
         Return - None
         """
-        # self.read_from_memory(operand)
         self.pointer = operand
 
     def op_BRANCHNEG(self, operand):
