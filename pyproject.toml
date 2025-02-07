@@ -12,7 +12,7 @@ readme = "README.md"
 python = "^3.12"
 termcolor = "^2.5.0"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 pytest = "^8.3.4"
 ruff = "^0.9.4"
 
