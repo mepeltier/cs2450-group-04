@@ -21,7 +21,7 @@ class Bootstrapper:
         self.io = IOHandler()
         self.cpu = CPU(self.memory, self.io)
 
-    def load_program(self, file_name: str, fix_index: Optional[bool] = False):
+    def load_program(self, file_name: str):
         """Load a program into memory starting at address 0.
 
         Parameters:
@@ -32,10 +32,6 @@ class Bootstrapper:
         """
         with open(file_name, "r") as file:
             program: List[str] = []
-
-            # Not sure what this is useful for, but I included it from the original CPU's method
-            if fix_index:
-                program.append("+4050")
 
             for line in file.readlines():
                 program.append(line)
