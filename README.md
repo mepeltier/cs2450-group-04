@@ -31,5 +31,3 @@ This project is managed with [Poetry](https://python-poetry.org/). In order to r
 
 
 Once those setup steps are completed, you can use `$ poetry run pytest tests/` to run the tests or `$ poetry run python src/main.py <file path>` to run the main program with a BasicML file. `Test1.txt` and `Test2.txt` are included here for convenience
-
-#TODO: Actually make sure that we can read in a file name ^^
