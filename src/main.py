@@ -2,7 +2,10 @@
 
 import argparse
 from typing import List
-from src.boot import Bootstrapper
+try:
+    from src.boot import Bootstrapper
+except ModuleNotFoundError:
+    from .boot import Bootstrapper
 
 boot = Bootstrapper()
 io = boot.io
