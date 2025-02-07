@@ -40,25 +40,26 @@ class Bootstrapper:
             for line in file.readlines():
                 program.append(line)
 
-            try:
-                for addr, instruction in enumerate(program):
+            for addr, instruction in enumerate(program):
+                try:
 
                     self.memory.write(addr, instruction.split()[0].rstrip())
 
-            except IndexError as error:
-                LOGGER.error(
-                    "Invalid index when loading program: \n%s", error.__str__()
-                )
-                return
+                except IndexError as error:
+                    LOGGER.error(
+                        "Invalid index when loading program: \n%s", error.__str__()
+                    )
+                    return
 
-            except ValueError as error:
-                LOGGER.error(
-                    "Invalid instruction in file: %s\n%s\n\n" "Zeroing out register %s",
-                    addr,
-                    instruction,
-                    error.__str__(),
-                )
-                self.memory.write(addr, "+0000")
+                except ValueError as error:
+                    LOGGER.error(
+                        "Invalid instruction in file: %s\n%s\n\n"
+                        "Zeroing out register %s",
+                        addr,
+                        instruction,
+                        error.__str__(),
+                    )
+                    self.memory.write(addr, "+0000")
 
     def run(self):
         """Run the CPU."""
