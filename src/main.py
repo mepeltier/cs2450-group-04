@@ -28,8 +28,22 @@ def main():
     if args.verbose:
         cpu.log = True
     
+    if not args.file and not args.manual:
+        file_path = io.read_string("Enter the file path to the BasicML input file (type 'manual' to start typing instructions):\n")
+        if file_path.lower() == "manual":
+            args.manual = True
+        else:
+            try:
+                io.read_from_file(file_path)
+            except FileNotFoundError as e:
+                io.write(e, True)
+                return
+            boot.load_program(file_path)
+            boot.run()
+            return
+    
     if args.manual and not args.file:
-        io.write("---Manual Instruction Input Mode---")
+        io.write("\n---Manual Instruction Input Mode---")
         program: List[str] = []
 
         while True:
@@ -55,15 +69,6 @@ def main():
                 mem.write(addr, "+0000")
         if len(program) > 1:
             boot.run()
-    elif not args.file and not args.manual:
-        file_path = io.read_string("Enter the file path to the BasicML input file:\n")
-        try:
-            io.read_from_file(file_path)
-        except FileNotFoundError as e:
-            io.write(e, True)
-            return
-        boot.load_program(file_path)
-        boot.run()
     elif args.file:
         boot.load_program(args.file)
         boot.run()
