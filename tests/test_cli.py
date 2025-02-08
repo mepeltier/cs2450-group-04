@@ -32,7 +32,7 @@ def test_interactive_mode():
              patch.object(main.boot, 'load_program') as mock_load, \
              patch.object(main.boot, 'run') as mock_run:
             main.main()
-            mock_read_str.assert_called_once_with("Enter the file path to the BasicML input file:\n")
+            mock_read_str.assert_called_once_with("Enter the file path to the BasicML input file (type 'manual' to start typing instructions):\n")
             mock_read_file.assert_called_once_with("test.txt")
             mock_load.assert_called_once_with("test.txt")
             mock_run.assert_called_once()
@@ -86,3 +86,17 @@ def test_version():
             importlib.reload(main)
         output = fake_stdout.getvalue()
         assert "UVSim 1.0" in output
+
+def test_help_message():
+    '''
+    Tests that the help message is displayed when the program is ran with the -h flag.
+    '''
+    testargs = ["UVSim", "-h"]
+    with patch('sys.stdout', new_callable=io.StringIO) as fake_stdout, \
+         patch.object(sys, 'argv', testargs):
+        with pytest.raises(SystemExit):
+            import src.main as main
+            importlib.reload(main)
+        output = fake_stdout.getvalue()
+        assert "usage:" in output
+        assert "UVSim - Run a BasicML program" in output
