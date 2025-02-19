@@ -5,7 +5,7 @@ import tkinter as tk
 from tkinter import *
 from termcolor import colored
 import difflib
-from tkinter import filedialog, messagebox, ttk
+from tkinter import filedialog, messagebox, ttk, font
 
 class PrintRedir:
     def __init__(self, txt):
@@ -22,6 +22,7 @@ class ColoredText(tk.Text):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.tag_configure("green", foreground="green")
+        self.tag_configure("center", justify="center")  # Centering configuration
 
     def insert_colored_text(self, text):
         parts = self.split_text_with_colors(text)
@@ -106,19 +107,27 @@ class App:
         self.program_text.grid(column=0, row=3, columnspan=2, padx=5, pady=5, sticky="nsew")
 
 
-        # Declare and Place Text box for Instructions and tooltips in Instructions Frame
-        inst_frame = ttk.Frame(main_frame, padding=10)
-        #inst_img = PhotoImage(file="Rounded Textbox.png")
-        #inst_label = ttk.Label(inst_frame, image=inst_img, border=0)
-        self.instructions = tk.Entry(inst_frame, width=20, font=("Consolas", 40))
-        self.instructions.grid(row=0, column=0)
-        inst_frame.grid(row=0, column=0, sticky=NSEW)
-        #inst_label.grid(row=0, column=0, sticky=EW)
+        # Configure main_frame grid weights
+        main_frame.grid_rowconfigure(1, weight=1)  # Make memory frame expandable
+        main_frame.grid_columnconfigure(0, weight=1)
 
+        # Declare and Place Text box for Instructions
+        inst_frame = ttk.Frame(main_frame, padding=10)
+        self.instructions = tk.Entry(inst_frame, width=20, font=("Consolas", 40))
+        self.instructions.grid(row=0, column=0, sticky="ew")
+        inst_frame.grid(row=0, column=0, sticky="new")  # Stick to top
+
+        # Configure inst_frame to expand horizontally
+        inst_frame.grid_columnconfigure(0, weight=1)  # Allow the instruction frame to expand
 
         # Declare CPU Info Frame, Status label and Memory Display text in Memory Frame
         memory_frame = tk.Frame(main_frame, padx=10, pady=10)
+        memory_frame.grid(row=1, column=0, sticky="nsew")  # Make memory_frame expandable
 
+        # Configure grid weights for memory_frame
+        memory_frame.grid_rowconfigure(2, weight=1)  # Make the row with memory_text expandable
+
+        # Place CPU info labels at the top of the memory_frame
         memory_label = ttk.Label(memory_frame, text="Memory")
         boldseperator = ttk.Separator(memory_frame, orient=VERTICAL)
         pc_frame = ttk.Label(memory_frame, text="PC:")
@@ -134,8 +143,6 @@ class App:
         self.memory_text.tag_configure("center", justify="center")
         
         # Place Memory Frame and its components
-        memory_frame.grid(row=1, column=0, sticky=EW)
-
         memory_label.grid(row=0, column=0, sticky=W)
         boldseperator.grid(row=0, column=1, sticky=NS)
         pc_frame.grid(row=0, column=2)
@@ -146,16 +153,22 @@ class App:
         seperator2.grid(row=0, column=7, sticky=NS)
         self.status_label.grid(row=0, column=8, sticky=EW)
         boldseperator1.grid(row=1, column=0, columnspan=9, sticky=EW)
-        self.memory_text.grid(row=1, column=0, columnspan=9, sticky=EW)
 
+        # Configure memory_frame to expand horizontally
+        memory_frame.grid_columnconfigure(0, weight=1)  # Allow the memory text to expand
+
+        # Update memory text to expand
+        self.memory_text.grid(row=2, column=0, columnspan=9, sticky="nsew")  # Ensure it fills the space
 
         # Initialize memory display with initial memory data and disable input
         self.memory_text.config(state=tk.NORMAL)
-        self.memory_text.insert("1.0", " " + self.mem.__str__())
-        self.memory_text.tag_add("center", "1.0", "end")
+        self.memory_text.insert("1.0", " " + self.mem.__str__(), "center")  # Use "center" tag for centering
+        self.memory_text.tag_add("center", "1.0", "end")  # Center the text
         self.memory_text.config(state=tk.DISABLED)
 
-
+        self.memory_text.bind("<Configure>", self.adjust_memory_font_size)
+        self.adjust_memory_font_size()
+        
         # Declare and Place run, step, halt, reset buttons, and I/O text in Control Frame
         control_frame = ttk.Frame(main_frame, padding=10)
 
@@ -165,13 +178,16 @@ class App:
         reset_btn = ttk.Button(control_frame, text="Reset", command=self.reset_program, padding=5)
         self.io_text = tk.Text(control_frame, height=5, width=48)
 
-        control_frame.grid(row=2, column=0, sticky=NSEW)
+        control_frame.grid(row=2, column=0, sticky="sew")  # Stick to bottom
 
-        run_btn.grid(row=0, column=0, padx=5, sticky=NW)
-        step_btn.grid(row=0, column=1, padx=5, sticky=NE)
-        halt_btn.grid(row=1, column=0, padx=5, sticky=SW)
-        reset_btn.grid(row=1, column=1, padx=5, sticky=SE)
-        self.io_text.grid(row=1, column=2, columnspan=3, padx=5, pady=5, sticky=NSEW)
+        run_btn.grid(row=0, column=0, padx=5, pady=5, sticky="w")
+        step_btn.grid(row=0, column=1, padx=5, pady=5, sticky="w")
+        halt_btn.grid(row=1, column=0, padx=5, pady=5, sticky="w")
+        reset_btn.grid(row=1, column=1, padx=5, pady=5, sticky="w")
+        self.io_text.grid(row=0, column=2, rowspan=2, padx=5, pady=5, sticky="nsew")
+
+        # Configure control_frame to expand horizontally
+        control_frame.grid_columnconfigure(2, weight=1)  # Allow the I/O text to expand
 
         if InitWithFileLoaded:
             self.load_file(InitWithFileLoaded)
@@ -208,6 +224,39 @@ class App:
                 messagebox.showerror("Error", f"Invalid instruction: {instruction}")
                 return
         self.update_memory_text()
+
+    def adjust_memory_font_size(self, event=None):
+        """Dynamically adjusts font size to fit text within memory_text widget with some padding."""
+        self.memory_text.config(state=tk.NORMAL)  # Temporarily enable editing
+
+        text = self.memory_text.get("1.0", "end-1c").strip()
+        if not text:
+            return  # Avoid errors when text is empty
+
+        # Get widget dimensions
+        widget_width = self.memory_text.winfo_width() * 0.95  # 5% padding on width
+        widget_height = self.memory_text.winfo_height() * 0.95  # 5% padding on height
+        new_size = 8  # Start with a base font size
+
+        # Create a temporary font object
+        text_font = font.Font(family="Consolas", size=new_size)
+        
+        while True:
+            # Calculate text width & height with the current font size
+            text_width = max(text_font.measure(line) for line in text.split("\n"))  # Widest line
+            text_height = text_font.metrics("linespace") * len(text.split("\n"))  # Total height
+
+            # If text fits within the widget (with padding), increase size, otherwise stop
+            if text_width < widget_width and text_height < widget_height:
+                new_size += 1
+                text_font = font.Font(family="Consolas", size=new_size)
+            else:
+                new_size -= 1  # Step back to the last working size
+                break
+
+        # Apply the adjusted font size
+        self.memory_text.config(font=("Consolas", new_size), state=tk.DISABLED)
+
 
     def update_memory_text(self):
         self.memory_text.config(state=tk.NORMAL)
