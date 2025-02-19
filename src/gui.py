@@ -22,7 +22,7 @@ class ColoredText(tk.Text):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.tag_configure("green", foreground="green")
-        self.tag_configure("center", justify="center")  # Centering configuration
+        self.tag_configure("left", justify="left")  # Left justification configuration
 
     def insert_colored_text(self, text):
         parts = self.split_text_with_colors(text)
@@ -140,7 +140,7 @@ class App:
         boldseperator1 = ttk.Separator(memory_frame, orient=HORIZONTAL)
         #self.memory_text = tk.Text(memory_frame, height=11, width=64, font=("Consolas", 12), wrap=NONE, state=tk.DISABLED)
         self.memory_text = ColoredText(memory_frame, height=11, width=64, font=("Consolas", 12), wrap=NONE, state=tk.DISABLED)
-        self.memory_text.tag_configure("center", justify="center")
+        self.memory_text.tag_configure("left", justify="left")
         
         # Place Memory Frame and its components
         memory_label.grid(row=0, column=0, sticky=W)
@@ -262,7 +262,7 @@ class App:
         self.memory_text.config(state=tk.NORMAL)
         self.memory_text.delete("1.0", tk.END)
         self.memory_text.insert_colored_text(" " + colored(self.mem.__str__(), "green"))
-        self.memory_text.tag_add("center", "1.0", "end")
+        self.memory_text.tag_add("left", "1.0", "end")  # Add left justification tag
         self.memory_text.config(state=tk.DISABLED)
         self.pc_label.config(text=str(self.cpu.pointer))
         self.acc_label.config(text=str(self.cpu.accumulator))
