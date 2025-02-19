@@ -113,8 +113,8 @@ class App:
 
         # Declare and Place Text box for Instructions
         inst_frame = ttk.Frame(main_frame, padding=10)
-        self.instructions = tk.Entry(inst_frame, width=20, font=("Consolas", 40))
-        self.instructions.grid(row=0, column=0, sticky="ew", ipady=10)
+        self.instructions = tk.Label(inst_frame, text="Your Instruction Here", font=("Consolas", 11), anchor="center")
+        self.instructions.grid(row=0, column=0, sticky="ew", ipady=24)  # Center the label
         inst_frame.grid(row=0, column=0, sticky="new")  # Stick to top
 
         # Configure inst_frame to expand horizontally
@@ -139,7 +139,7 @@ class App:
         self.status_label = ttk.Label(memory_frame, text="Status: Ready", relief=tk.SUNKEN, anchor=tk.W)
         boldseperator1 = ttk.Separator(memory_frame, orient=HORIZONTAL)
         self.memory_text = ColoredText(memory_frame, height=11, width=64, font=("Consolas", 12), wrap=NONE, state=tk.DISABLED)
-        self.memory_text.tag_configure("left", justify="left")
+        self.memory_text.tag_configure("center", justify="center")
         
         # Place Memory Frame and its components
         memory_label.grid(row=0, column=0, sticky=W)
