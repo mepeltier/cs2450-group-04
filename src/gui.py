@@ -22,7 +22,7 @@ class ColoredText(tk.Text):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.tag_configure("green", foreground="green")
-        self.tag_configure("left", justify="left")  # Left justification configuration
+        self.tag_configure("center", justify="center")  # Left justification configuration
 
     def insert_colored_text(self, text):
         parts = self.split_text_with_colors(text)
@@ -138,7 +138,7 @@ class App:
         seperator2 = ttk.Separator(memory_frame, orient=VERTICAL)
         self.status_label = ttk.Label(memory_frame, text="Status: Ready", relief=tk.SUNKEN, anchor=tk.W)
         boldseperator1 = ttk.Separator(memory_frame, orient=HORIZONTAL)
-        self.memory_text = ColoredText(memory_frame, height=11, width=64, font=("Consolas", 12), wrap=NONE, state=tk.DISABLED)
+        self.memory_text = ColoredText(memory_frame, height=11, width=64, font=("Courier", 12), wrap=NONE, state=tk.DISABLED)
         self.memory_text.tag_configure("center", justify="center")
         
         # Place Memory Frame and its components
@@ -258,13 +258,47 @@ class App:
 
 
     def update_memory_text(self):
+        print("TODO: update_memory_text use real PC after step is implemented")
+        pc = 0  # Placeholder for the actual program counter value
+
         self.memory_text.config(state=tk.NORMAL)
         self.memory_text.delete("1.0", tk.END)
-        self.memory_text.insert_colored_text(" " + colored(self.mem.__str__(), "green"))
-        self.memory_text.tag_add("left", "1.0", "end")  # Add left justification tag
+
+        # Get the current memory lines as a list
+        memory_lines = self.mem.__str__().splitlines()
+        current_row = pc // 10  # Determine the row based on the PC value
+        
+        # Insert lines before the current PC
+        for i in range(0, current_row + 1):
+            self.memory_text.insert_colored_text("\n" + colored(memory_lines[i], "green"))
+        
+        # Split the active line at the current row to highlight the current instruction
+        active_line = memory_lines[current_row + 1].split()
+        current_column = pc % 10  # Determine the column based on the PC value
+
+        # Highlight the first part of the current instruction
+        self.memory_text.insert_colored_text(colored("\n" + active_line[0] + " ", "green"))  # Current PC line
+
+        # Highlight the instruction parts up to the current column
+        for i in range(1, current_column + 1):
+            self.memory_text.insert_colored_text(colored(" " + active_line[i], "green"))  # Current PC line
+
+        # Insert the next part of the instruction after the highlighted parts
+        self.memory_text.insert_colored_text(" " + active_line[current_column + 1] + " ")  # Current PC line
+        
+        # Highlight the remaining parts of the instruction
+        for i in range(current_column + 2, len(active_line)):
+            self.memory_text.insert_colored_text(colored(" " + active_line[i], "green"))  # Current PC line
+
+        # Insert lines after the current PC
+        for i in range(current_row + 2, len(memory_lines) - 1):
+            self.memory_text.insert_colored_text("\n" + colored(memory_lines[i], "green"))
+
+        self.memory_text.tag_add("center", "1.0", "end") 
         self.memory_text.config(state=tk.DISABLED)
         self.pc_label.config(text=str(self.cpu.pointer))
         self.acc_label.config(text=str(self.cpu.accumulator))
+        self.adjust_memory_font_size()
 
     def run_program(self):
         redir = PrintRedir(self.memory_text)
