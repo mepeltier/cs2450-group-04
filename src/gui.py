@@ -62,8 +62,8 @@ class App:
     def __init__(self, boot, InitWithFileLoaded=None):
         self.root = tk.Tk()
         self.root.title("UVSim - BasicML Simulator")
-        self.root.geometry('975x519')
-        self.root.minsize(975, 519)
+        self.root.geometry('960x519')
+        self.root.minsize(960, 519)
         self.root.iconbitmap('cpu.ico')
 
         
@@ -91,13 +91,15 @@ class App:
 
         # Configure prog_input_frame grid weights
         prog_input_frame.grid_rowconfigure(3, weight=1)  # Make row with program_text expandable
-        prog_input_frame.grid_columnconfigure((0, 1), weight=1)  # Make columns equal width
+        prog_input_frame.grid_columnconfigure((0, 1), weight=0)  # Make columns equal width
 
         # Declare and Place Program Input Frame, buttons, and opcode textbox
         load_file_btn = ttk.Button(prog_input_frame, text="Load File", command=self.load_file, padding=5)
         clear_btn = ttk.Button(prog_input_frame, text="Clear", command=self.clear_program, padding=5)
         load_mem_btn = ttk.Button(prog_input_frame, text="Load Into Memory", command=self.load_memory, padding=5)
-        self.program_text = tk.Text(prog_input_frame, height=25, width=20)
+        self.program_text = tk.Text(prog_input_frame, height=25, width=10)
+        self.program_text.config(font=("Consolas", 25))  # Increase text font size
+
 
         load_file_btn.grid(column=0, row=0, padx=3, pady=3, sticky="ew")
         clear_btn.grid(column=1, row=0, padx=3, pady=3, sticky="ew")
@@ -112,7 +114,7 @@ class App:
         # Declare and Place Text box for Instructions
         inst_frame = ttk.Frame(main_frame, padding=10)
         self.instructions = tk.Entry(inst_frame, width=20, font=("Consolas", 40))
-        self.instructions.grid(row=0, column=0, sticky="ew")
+        self.instructions.grid(row=0, column=0, sticky="ew", ipady=10)
         inst_frame.grid(row=0, column=0, sticky="new")  # Stick to top
 
         # Configure inst_frame to expand horizontally
