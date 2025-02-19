@@ -62,8 +62,8 @@ class App:
     def __init__(self, boot, InitWithFileLoaded=None):
         self.root = tk.Tk()
         self.root.title("UVSim - BasicML Simulator")
-        self.root.geometry('833x519')
-        self.root.minsize(833, 519)
+        self.root.geometry('975x519')
+        self.root.minsize(975, 519)
         self.root.iconbitmap('cpu.ico')
 
         
