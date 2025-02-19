@@ -65,6 +65,7 @@ class App:
         self.root.geometry('833x519')
         self.root.minsize(833, 519)
         self.root.iconbitmap('cpu.ico')
+
         
         # Configure root grid weights
         self.root.grid_columnconfigure(0, weight=0)  # Remove weight from left column
@@ -77,16 +78,13 @@ class App:
         self.cpu = boot.cpu
 
         style = ttk.Style(self.root)
-        style.configure("TButton", font=("Arial", 8))
-        style.configure("TLabel", font=("Arial", 12, "bold"))
-        style.configure("TSeperator", font=("Arial", 14, "bold"))
+        style.theme_use("alt")  # Try other themes like "alt", "default", "classic"
+        # style.configure('TFrame', background='lightgreen')
+
 
         # Declare and Place Section Framing
         prog_input_frame = ttk.Frame(self.root, padding=10)
         main_frame = ttk.Frame(self.root, padding=10)
-
-        #prog_input_frame.columnconfigure((0, 1), weight=1, uniform='a')
-        #prog_input_frame.rowconfigure((0, 1, 2), weight=1, uniform='a')
 
         prog_input_frame.grid(row=0, column=0, sticky="ns")
         main_frame.grid(row=0, column=1, sticky=NSEW)
@@ -138,7 +136,6 @@ class App:
         seperator2 = ttk.Separator(memory_frame, orient=VERTICAL)
         self.status_label = ttk.Label(memory_frame, text="Status: Ready", relief=tk.SUNKEN, anchor=tk.W)
         boldseperator1 = ttk.Separator(memory_frame, orient=HORIZONTAL)
-        #self.memory_text = tk.Text(memory_frame, height=11, width=64, font=("Consolas", 12), wrap=NONE, state=tk.DISABLED)
         self.memory_text = ColoredText(memory_frame, height=11, width=64, font=("Consolas", 12), wrap=NONE, state=tk.DISABLED)
         self.memory_text.tag_configure("left", justify="left")
         
