@@ -234,8 +234,8 @@ class App:
             return  # Avoid errors when text is empty
 
         # Get widget dimensions
-        widget_width = self.memory_text.winfo_width() * 0.95  # 5% padding on width
-        widget_height = self.memory_text.winfo_height() * 0.95  # 5% padding on height
+        widget_width = self.memory_text.winfo_width() * 0.97  # 5% padding on width
+        widget_height = self.memory_text.winfo_height() * 0.97  # 5% padding on height
         new_size = 8  # Start with a base font size
 
         # Create a temporary font object
