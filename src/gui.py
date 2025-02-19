@@ -65,6 +65,11 @@ class App:
         self.root.minsize(833, 519)
         self.root.iconbitmap('cpu.ico')
         
+        # Configure root grid weights
+        self.root.grid_columnconfigure(0, weight=0)  # Remove weight from left column
+        self.root.grid_columnconfigure(1, weight=1)  # Make main frame take all extra space
+        self.root.grid_rowconfigure(0, weight=1)
+
         self.boot = boot
         self.io = boot.io
         self.mem = boot.memory
@@ -73,7 +78,6 @@ class App:
         style = ttk.Style(self.root)
         style.configure("TButton", font=("Arial", 8))
         style.configure("TLabel", font=("Arial", 12, "bold"))
-        #style.configure("TFrame", font=("Arial", 12))
         style.configure("TSeperator", font=("Arial", 14, "bold"))
 
         # Declare and Place Section Framing
@@ -83,9 +87,12 @@ class App:
         #prog_input_frame.columnconfigure((0, 1), weight=1, uniform='a')
         #prog_input_frame.rowconfigure((0, 1, 2), weight=1, uniform='a')
 
-        prog_input_frame.grid(row=0, column=0, sticky=NSEW)
+        prog_input_frame.grid(row=0, column=0, sticky="ns")
         main_frame.grid(row=0, column=1, sticky=NSEW)
 
+        # Configure prog_input_frame grid weights
+        prog_input_frame.grid_rowconfigure(3, weight=1)  # Make row with program_text expandable
+        prog_input_frame.grid_columnconfigure((0, 1), weight=1)  # Make columns equal width
 
         # Declare and Place Program Input Frame, buttons, and opcode textbox
         load_file_btn = ttk.Button(prog_input_frame, text="Load File", command=self.load_file, padding=5)
@@ -93,10 +100,10 @@ class App:
         load_mem_btn = ttk.Button(prog_input_frame, text="Load Into Memory", command=self.load_memory, padding=5)
         self.program_text = tk.Text(prog_input_frame, height=25, width=20)
 
-        load_file_btn.grid(column=0, row=0, padx=5, pady=5, sticky=NW)
-        clear_btn.grid(column=1, row=0, padx=5, pady=5, sticky=NE)
-        load_mem_btn.grid(column=0, row=2, columnspan=2, padx=5, pady=5, sticky=NSEW)
-        self.program_text.grid(column=0, row=3, columnspan=2, padx=5, pady=5, sticky=NSEW)
+        load_file_btn.grid(column=0, row=0, padx=3, pady=3, sticky="ew")
+        clear_btn.grid(column=1, row=0, padx=3, pady=3, sticky="ew")
+        load_mem_btn.grid(column=0, row=2, columnspan=2, padx=3, pady=3, sticky="ew")
+        self.program_text.grid(column=0, row=3, columnspan=2, padx=5, pady=5, sticky="nsew")
 
 
         # Declare and Place Text box for Instructions and tooltips in Instructions Frame
