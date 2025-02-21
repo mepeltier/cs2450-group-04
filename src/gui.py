@@ -161,8 +161,16 @@ class App:
 
         # Initialize memory display with initial memory data and disable input
         self.memory_text.config(state=tk.NORMAL)
-        self.memory_text.insert("1.0", " " + self.mem.__str__(), "center")  # Use "center" tag for centering
-        self.memory_text.tag_add("center", "1.0", "end")  # Center the text
+        
+        # Insert the first line with left alignment
+        first_line = " " + self.mem.__str__().splitlines()[0]  + "\n" # Get the first line
+        self.memory_text.insert("1.0", first_line)  # Insert first line without tag
+        
+        # Insert the rest of the text with center alignment
+        rest_of_text = "\n".join(self.mem.__str__().splitlines()[1:])  # Get the rest of the lines
+        self.memory_text.insert("end", rest_of_text, "center")  # Use "center" tag for centering
+        
+        self.memory_text.tag_add("center", "2.0", "end")  # Center the rest of the text
         self.memory_text.config(state=tk.DISABLED)
 
         self.memory_text.bind("<Configure>", self.adjust_memory_font_size)
@@ -267,34 +275,42 @@ class App:
         # Get the current memory lines as a list
         memory_lines = self.mem.__str__().splitlines()
         current_row = pc // 10  # Determine the row based on the PC value
-        
+
+        if not memory_lines:
+            self.memory_text.config(state=tk.DISABLED)
+            return
+
+            # Insert the first line with left alignment
+        first_line = memory_lines[0]
+        self.memory_text.insert_colored_text(first_line + "\n")  # Insert first line without tag
+
         # Insert lines before the current PC
-        for i in range(0, current_row + 1):
-            self.memory_text.insert_colored_text("\n" + colored(memory_lines[i], "green"))
+        for i in range(1, current_row + 1):
+            self.memory_text.insert_colored_text("\n" + memory_lines[i])
         
         # Split the active line at the current row to highlight the current instruction
         active_line = memory_lines[current_row + 1].split()
         current_column = pc % 10  # Determine the column based on the PC value
 
         # Highlight the first part of the current instruction
-        self.memory_text.insert_colored_text(colored("\n" + active_line[0] + " ", "green"))  # Current PC line
+        self.memory_text.insert_colored_text(active_line[0])  # Current PC line
 
-        # Highlight the instruction parts up to the current column
+        # Highlight the instruction parts up to the current columnx
         for i in range(1, current_column + 1):
-            self.memory_text.insert_colored_text(colored(" " + active_line[i], "green"))  # Current PC line
+            self.memory_text.insert_colored_text(" " + active_line[i])  # Current PC line
 
         # Insert the next part of the instruction after the highlighted parts
-        self.memory_text.insert_colored_text(" " + active_line[current_column + 1] + " ")  # Current PC line
+        self.memory_text.insert_colored_text(colored(" " + active_line[current_column + 1] + " ", "green"))  # Current PC line
         
         # Highlight the remaining parts of the instruction
         for i in range(current_column + 2, len(active_line)):
-            self.memory_text.insert_colored_text(colored(" " + active_line[i], "green"))  # Current PC line
+            self.memory_text.insert_colored_text(" " + active_line[i])  # Current PC line
 
         # Insert lines after the current PC
         for i in range(current_row + 2, len(memory_lines) - 1):
-            self.memory_text.insert_colored_text("\n" + colored(memory_lines[i], "green"))
+            self.memory_text.insert_colored_text("\n" + memory_lines[i])
 
-        self.memory_text.tag_add("center", "1.0", "end") 
+        self.memory_text.tag_add("center", "2.0", "end") 
         self.memory_text.config(state=tk.DISABLED)
         self.pc_label.config(text=str(self.cpu.pointer))
         self.acc_label.config(text=str(self.cpu.accumulator))
