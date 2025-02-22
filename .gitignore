@@ -8,3 +8,4 @@ __pycache__/
 __pycache__/
 fake_test_cpu.py
 random_instructions.py
+.DS_store
