@@ -85,7 +85,7 @@ class Memory:
         str: Formatted string showing memory contents with row and column numbers
         """
         # Create column header
-        output = ["            ", " ".join(f"{i:02d}       " for i in range(10)), "\n"]
+        output = ["     ", " ".join(f"{i:02d}   " for i in range(10)), "\n"]
 
         # Create memory contents with row numbers
         for i in range(0, self.size, 10):

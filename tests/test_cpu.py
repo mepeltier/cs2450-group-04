@@ -25,7 +25,7 @@ class TestCPU(unittest.TestCase):
 
         for o in bad_operations:
             with pytest.raises(ValueError):
-                self.cpu.operation(o)
+                self.cpu.operation(o, gui=None)
 
     def test_decypher_instruction(self):
         """
@@ -62,73 +62,73 @@ class TestCPU(unittest.TestCase):
 
     def test_halt(self):
         with pytest.raises(Halt):
-            self.cpu.operation(4300)
+            self.cpu.operation(4300, gui=None)
     
     def test_LOAD(self):
         assert self.cpu.accumulator != 8
-        self.cpu.operation(2010)  # Load from [10]
+        self.cpu.operation(2010, gui=None)  # Load from [10]
         assert self.cpu.accumulator == 8
 
-        self.cpu.operation(2011)  # Load from [11]
+        self.cpu.operation(2011, gui=None)  # Load from [11]
         assert self.cpu.accumulator == 16
 
     def test_STORE(self):
         assert self.cpu.register != 8
-        self.cpu.operation(2010)  # Load #0008 from [10] into accumulator
-        self.cpu.operation(2100)  # Store #0008 into [00] in Memory
+        self.cpu.operation(2010, gui=None)  # Load #0008 from [10] into accumulator
+        self.cpu.operation(2100, gui=None)  # Store #0008 into [00] in Memory
         assert Memory.word_to_int(self.cpu.memory.read(00)) == 8
 
-        self.cpu.operation(2000)  # Load #0008 from [00] into register
+        self.cpu.operation(2000, gui=None)  # Load #0008 from [00] into register
         assert self.cpu.register == 8
 
     def test_ADD(self):
         assert self.cpu.accumulator != 8 + 16
-        self.cpu.operation(2010)  # Load #0008 from [10] into accumulator
-        self.cpu.operation(3011)  # Add #0016 from [11] into accumulator
+        self.cpu.operation(2010, gui=None)  # Load #0008 from [10] into accumulator
+        self.cpu.operation(3011, gui=None)  # Add #0016 from [11] into accumulator
         assert self.cpu.accumulator == 8 + 16
 
     def test_SUBTRACT(self):
         assert self.cpu.accumulator != 8 - 7
-        self.cpu.operation(2010)  # Load #0008 from [10] into accumulator
-        self.cpu.operation(3112)  # Subtract #0007 from [12] into accumulator
+        self.cpu.operation(2010, gui=None)  # Load #0008 from [10] into accumulator
+        self.cpu.operation(3112, gui=None)  # Subtract #0007 from [12] into accumulator
         assert self.cpu.accumulator == 8 - 7
 
     def test_MULTIPLY(self):
         assert self.cpu.accumulator != 8 * 7
-        self.cpu.operation(2010)  # Load #0008 from [10] into accumulator
-        self.cpu.operation(3312)  # Multiply #0007 from [12] into accumulator
+        self.cpu.operation(2010, gui=None)  # Load #0008 from [10] into accumulator
+        self.cpu.operation(3312, gui=None)  # Multiply #0007 from [12] into accumulator
         assert self.cpu.accumulator == 8 * 7
 
     def test_DIVIDE(self):
         assert self.cpu.accumulator != 16 /8
-        self.cpu.operation(2011)  # Load #0016 from [11] into accumulator
-        self.cpu.operation(3210)  # Divide by #0008 from [10]
+        self.cpu.operation(2011, gui=None)  # Load #0016 from [11] into accumulator
+        self.cpu.operation(3210, gui=None)  # Divide by #0008 from [10]
         assert self.cpu.accumulator == 16 / 8 
 
     def test_BRANCH(self):
         assert self.cpu.pointer != 59
-        self.cpu.operation(4059)  # Tests that the CPU has it's pointer updated to 59, should NOT increment after jumping
+        self.cpu.operation(4059, gui=None)  # Tests that the CPU has it's pointer updated to 59, should NOT increment after jumping
         assert self.cpu.pointer == 59
 
     def test_BRANCHZERO(self):
         assert self.cpu.pointer != 59
-        self.cpu.operation(2010)  # Load #0008 from [10] into accumulator
-        self.cpu.operation(3110)  # Subtract #0008 from accumulator (0)
-        self.cpu.operation(4259)  # Branches to 59 if accumulator is ZERO
+        self.cpu.operation(2010, gui=None)  # Load #0008 from [10] into accumulator
+        self.cpu.operation(3110, gui=None)  # Subtract #0008 from accumulator (0)
+        self.cpu.operation(4259, gui=None)  # Branches to 59 if accumulator is ZERO
         assert self.cpu.pointer == 59
 
     def test_BRANCHNEG(self):
         assert self.cpu.pointer !=59
-        self.cpu.operation(2010)  # Load #0008 from [10] into accumulator
-        self.cpu.operation(3111)  # Subtract #0016 from accumulator (-8)
-        self.cpu.operation(4159)  # Branches to 59 if accumulator is NEGATIVE
+        self.cpu.operation(2010, gui=None)  # Load #0008 from [10] into accumulator
+        self.cpu.operation(3111, gui=None)  # Subtract #0016 from accumulator (-8)
+        self.cpu.operation(4159, gui=None)  # Branches to 59 if accumulator is NEGATIVE
         assert self.cpu.pointer == 59
 
     def test_FULL_PROGRAM(self):
         boot = Bootstrapper()
 
         boot.load_program("tests/cpu_test.txt")
-        boot.run()
+        boot.run(gui=None)
         with open("tests/cpu_test_final.txt") as file:
             final_data = file.readlines()
 

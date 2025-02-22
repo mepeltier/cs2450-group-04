@@ -1,9 +1,8 @@
 """Class to parse a BasicML file into Memory."""
 
 import logging
-from typing import List, Optional
+from typing import List
 from src.cpu import CPU
-from src.io_handler import IOHandler
 from src.memory import Memory
 
 LOGGER = logging.getLogger(__name__)
@@ -18,8 +17,7 @@ class Bootstrapper:
     def __init__(self) -> None:
         """Boostrap CPU, Memory, IOHandler."""
         self.memory = Memory()
-        self.io = IOHandler()
-        self.cpu = CPU(self.memory, self.io)
+        self.cpu = CPU(self.memory)
 
     def load_program(self, file_name: str):
         """Load a program into memory starting at address 0.
@@ -57,6 +55,6 @@ class Bootstrapper:
                     )
                     self.memory.write(addr, "+0000")
 
-    def run(self):
+    def run(self, gui):
         """Run the CPU."""
-        self.cpu.run()
+        self.cpu.run(gui)
