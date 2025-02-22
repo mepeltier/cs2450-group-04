@@ -81,7 +81,7 @@ class CPU:
                 # Print new/changed text in green
                 return colored(curr_text[j1:j2], "green")
 
-    def run(self, gui):
+    def run(self, gui=None, cont=False):
         """Creates loop that allows the CPU to run continuously
         Will self-increment to next instruction in memory and read until halted.
 
@@ -91,13 +91,17 @@ class CPU:
         Parameters:
             file_location - file location to read instructions into memory
         """
-        self.boot_up()
-        max_instructions = CPU.MAX_INSTRUCTION_LIMIT
+        if not cont:
+            self.boot_up()
+            max_instructions = CPU.MAX_INSTRUCTION_LIMIT
+        else:
+            max_instructions = CPU.MAX_INSTRUCTION_LIMIT - self.pointer
 
         while max_instructions > 0:
             self.previous_memory_state = self.current_memory_state
             self.current_memory_state = str(self.memory)
-            gui.update_memory_text(self.print_memory_states_DEV_ONLY())
+            if not gui is None:
+                gui.update_memory_text(self.print_memory_states_DEV_ONLY())
 
             try:
                 self.register = Memory.word_to_int(self.memory.read(self.pointer))
@@ -106,7 +110,7 @@ class CPU:
 
             except Halt:
                 self.halted = True
-                break
+                return
 
             except ValueError as e:
                 return f"Error: {e}"
@@ -151,10 +155,8 @@ class CPU:
 
         return (operator, operand)
 
-    def operation(self, word, gui, matchAndReturnInstInfo=False):
+    def operation(self, word, gui=None, matchAndReturnInstInfo=False):
         """Function to run a specific instruction (word) or return it's name.
-
-        Instruction function is then ran.
 
         Parameters:
             word - Is validated
@@ -180,59 +182,59 @@ class CPU:
                 # I/O Operations
                 case 10:
                     if matchAndReturnInstInfo:
-                        return f"READ ({word})\nRead a word from the keyboard into memory location {operand}."
+                        return f"{self.memory.int_to_word(word)}: READ (10)\nRead a word from the keyboard into memory location {operand}."
                     self.op_READ(operand, gui)
                 case 11:
                     if matchAndReturnInstInfo:
-                        return f"WRITE ({word})\nWrite the word from memory location {operand} to screen."
+                        return f"{self.memory.int_to_word(word)}: WRITE (11)\nWrite the word from memory location {operand} to screen."
                     self.op_WRITE(operand, gui)
 
                 # Load/Store Operations
                 case 20:
                     if matchAndReturnInstInfo:
-                        return f"LOAD ({word})\nLoad the word from memory location {operand} into the accumulator."
+                        return f"{self.memory.int_to_word(word)}: LOAD (20)\nLoad the word from memory location {operand} into the accumulator."
                     self.op_LOAD(operand)
                 case 21:
                     if matchAndReturnInstInfo:
-                        return f"STORE ({word})\nStore the word from the accumulator into memory location {operand}."
+                        return f"{self.memory.int_to_word(word)}: STORE (21)\nStore the word from the accumulator into memory location {operand}."
                     self.op_STORE(operand)
 
                 # Arithmetic Operation
                 case 30:
                     if matchAndReturnInstInfo:
-                        return f"ADD ({word})\nAdd the word from memory location {operand} to the word in the accumulator (leave the result in the accumulator)"
+                        return f"{self.memory.int_to_word(word)}: ADD (30)\nAdd the word from memory location {operand} to the word in the accumulator (leave the result in the accumulator)"
                     self.op_ADD(operand)
                 case 31:
                     if matchAndReturnInstInfo:
-                        return f"SUBTRACT ({word})\nSubtract the word from memory location {operand} to the word in the accumulator (leave the result in the accumulator)."
+                        return f"{self.memory.int_to_word(word)}: SUBTRACT (31)\nSubtract the word from memory location {operand} to the word in the accumulator (leave the result in the accumulator)."
                     self.op_SUBTRACT(operand)
                 case 32:
                     if matchAndReturnInstInfo:
-                        return f"DIVIDE ({word})\nDivide the word in the accumulator by the word from memory location {operand} (leave the result in the accumulator)."
+                        return f"{self.memory.int_to_word(word)}: DIVIDE (32)\nDivide the word in the accumulator by the word from memory location {operand} (leave the result in the accumulator)."
                     self.op_DIVIDE(operand)
                 case 33:
                     if matchAndReturnInstInfo:
-                        return f"MULTIPLY ({word})\nMultiply the word from memory location {operand} to the word in the accumulator (leave the result in the accumulator)."
+                        return f"{self.memory.int_to_word(word)}: MULTIPLY (33)\nMultiply the word from memory location {operand} to the word in the accumulator (leave the result in the accumulator)."
                     self.op_MULTIPLY(operand)
 
                 # Control Operations
                 case 40:
                     if matchAndReturnInstInfo:
-                        return f"BRANCH ({word})\nBranch to memory location {operand}."
+                        return f"{self.memory.int_to_word(word)}: BRANCH (40)\nBranch to memory location {operand}."
                     self.op_BRANCH(operand)
                 case 41:
                     if matchAndReturnInstInfo:
-                        return f"BRANCHNEG ({word})\nBranch to memory location {operand} if the accumulator is negative."
+                        return f"{self.memory.int_to_word(word)}: BRANCHNEG (41)\nBranch to memory location {operand} if the accumulator is negative."
                     self.op_BRANCHNEG(operand)
                 case 42:
                     if matchAndReturnInstInfo:
-                        return f"BRANCHZERO ({word})\nBranch to memory location {operand} if the accumulator is zero."
+                        return f"{self.memory.int_to_word(word)}: BRANCHZERO (42)\nBranch to memory location {operand} if the accumulator is zero."
                     self.op_BRANCHZERO(operand)
                 case 43:
                     if matchAndReturnInstInfo:
-                        return f"HALT ({word})\nPause the program."
+                        return f"{self.memory.int_to_word(word)}: HALT (43)\nPause the program."
                     # Raises HALT
-                    self.op_HALT(operand)
+                    self.op_HALT()
 
                 # Test Operators
                 case 99:
@@ -287,6 +289,7 @@ class CPU:
                     continue
         
         gui.io_text.config(state=tk.NORMAL)
+        gui.io_text.delete("0", "end")
         gui.io_text.bind("<Return>", read_input)
         gui.io_label.configure(text="Read a 4-digit signed instruction: ")
         gui.input = tk.StringVar()
@@ -418,7 +421,7 @@ class CPU:
         if self.accumulator == 0:
             self.op_BRANCH(operand)
 
-    def op_HALT(self, operand):
+    def op_HALT(self):
         """Mini Method used to halt the CPU.
 
         Parameters:

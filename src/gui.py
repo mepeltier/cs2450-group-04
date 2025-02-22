@@ -25,7 +25,7 @@ class ColoredText(tk.Text):
                 self.insert(tk.END, part)
 
     def split_text_with_colors(self, text):
-        '''Split the text with colors'''
+        '''Split the text with color codes'''
         parts = []
         current_part = ""
         current_color = None
@@ -59,7 +59,7 @@ class App:
         self.root.title("UVSim - BasicML Simulator")
         self.root.geometry('960x552')
         self.root.minsize(960, 552)
-        self.root.iconbitmap('cpu.ico')
+        self.root.iconbitmap('gui/cpu.ico')
 
         # Define menubar
         menubar = Menu(self.root)
@@ -71,11 +71,15 @@ class App:
 
         helpmenu = Menu(menubar, tearoff=0)
         helpmenu.add_command(label="Instructions Set", command=self.instructions_window)
-        
         helpmenu.add_command(label="About", command=lambda: messagebox.showinfo("About", "UVSim - BasicML Simulator\n\nVersion 2.0\n"))
         menubar.add_cascade(label="Help", menu=helpmenu)
 
         self.root.config(menu=menubar)
+
+
+        self.boot = boot
+        self.mem = boot.memory
+        self.cpu = boot.cpu
 
 
         # Configure root grid weights
@@ -83,9 +87,6 @@ class App:
         self.root.grid_columnconfigure(1, weight=1)  # Make main frame take all extra space
         self.root.grid_rowconfigure(0, weight=1)
 
-        self.boot = boot
-        self.mem = boot.memory
-        self.cpu = boot.cpu
 
         style = ttk.Style(self.root)
         style.theme_use("alt")
@@ -102,28 +103,31 @@ class App:
         prog_input_frame.grid_rowconfigure(3, weight=1)  # Make row with program_text expandable
         prog_input_frame.grid_columnconfigure((0, 1), weight=0)  # Make columns equal width
 
-        # Declare and Place Program Input Frame, buttons, and opcode textbox
+        # Declare and Place Program Input Frame, Scrollbar, buttons, and opcode textbox
         load_file_btn = ttk.Button(prog_input_frame, text="Load File", command=self.load_file, padding=5)
         clear_btn = ttk.Button(prog_input_frame, text="Clear", command=self.clear_program, padding=5)
         load_mem_btn = ttk.Button(prog_input_frame, text="Load Into Memory", command=self.load_memory, padding=5)
         self.program_text = tk.Text(prog_input_frame, height=25, width=10)
-        self.program_text.config(font=("Consolas", 25))  # Increase text font size
+        scrollbar = ttk.Scrollbar(prog_input_frame, orient=VERTICAL, command=self.program_text.yview)
+        self.program_text.config(font=("Consolas", 25), yscrollcommand=scrollbar.set)  # Increase text font size and add scrollbar
 
         load_file_btn.grid(column=0, row=0, padx=3, pady=3, sticky="ew")
         clear_btn.grid(column=1, row=0, padx=3, pady=3, sticky="ew")
         load_mem_btn.grid(column=0, row=2, columnspan=2, padx=3, pady=3, sticky="ew")
         self.program_text.grid(column=0, row=3, columnspan=2, padx=5, pady=5, sticky="nsew")
-
+        scrollbar.grid(column=2, row=3, pady=5, sticky="ns")
 
         # Configure main_frame grid weights
         main_frame.grid_rowconfigure(1, weight=1)  # Make memory frame expandable
         main_frame.grid_columnconfigure(0, weight=1)
 
         # Declare and Place Text box for Instructions
-        inst_frame = ttk.Frame(main_frame, padding=10)
+        inst_frame = tk.Frame(main_frame, padx=10, pady=10)
         self.instructions = tk.Label(inst_frame, text="Instruction", font=("Consolas", 11), anchor="center", height=3, wraplength=550)
-        self.instructions.grid(row=0, column=0, sticky="ew", ipady=24)  # Center the label
+        seperator = ttk.Separator(inst_frame, orient=HORIZONTAL)
         inst_frame.grid(row=0, column=0, sticky="new")  # Stick to top
+        self.instructions.grid(row=0, column=0, sticky="ew", ipady=24)  # Center the label
+        seperator.grid(row=1, column=0, columnspan=3, sticky="ew") # Add a separator
 
         # Configure inst_frame to expand horizontally
         inst_frame.grid_columnconfigure(0, weight=1)  # Allow the instruction frame to expand
@@ -183,6 +187,7 @@ class App:
         step_btn = ttk.Button(control_frame, text="Step", command=self.step_program, padding=5)
         halt_btn = ttk.Button(control_frame, text="Halt", command=self.halt_program, padding=5)
         reset_btn = ttk.Button(control_frame, text="Reset", command=self.reset_program, padding=5)
+        seperator3 = ttk.Separator(control_frame, orient=VERTICAL)
         self.io_label = ttk.Label(control_frame, text="I/O", font=("Consolas", 11))
         self.io_text = ttk.Entry(control_frame, font=("Consolas", 25), state=tk.DISABLED)
 
@@ -192,6 +197,7 @@ class App:
         step_btn.grid(row=0, rowspan=2, column=1, padx=5, pady=5, sticky="w")
         halt_btn.grid(row=2, rowspan=2, column=0, padx=5, pady=5, sticky="w")
         reset_btn.grid(row=2, rowspan=2, column=1, padx=5, pady=5, sticky="w")
+        seperator3.grid(row=0, rowspan=4, column=2, sticky="nsw")
         self.io_label.grid(row=0, column=2, padx=5, pady=5, sticky="nw")
         self.io_text.grid(row=1, rowspan=3, column=2, padx=5, pady=5, sticky="ew")
 
@@ -207,7 +213,7 @@ class App:
     def load_file(self, file_path=None):
         '''Load a file into the program_text widget'''
         if not file_path:
-            file_path = filedialog.askopenfilename(defaultextension=".txt", filetypes=[("Text files", "*.txt"), ("All files", "*.*")])
+            file_path = filedialog.askopenfilename(defaultextension=".txt", filetypes=[("Text files", "*.txt")])
 
         if self.program_text.get("1.0", tk.END).strip() != "":
             self.program_text.insert(tk.END, "\n")
@@ -218,6 +224,10 @@ class App:
         except FileNotFoundError as e:
             messagebox.showerror("Error", f"File not found: {file_path}")
             return
+        except Exception as e:
+            messagebox.showerror("Error", f"Error: {e}")
+            return
+        self.status_label.config(text="Status: Ready")
     
     def clear_program(self):
         '''Clear the program_text widget'''
@@ -229,7 +239,12 @@ class App:
         self.mem.clear()
         for addr, instruction in enumerate(text):
             if instruction.strip() == "":
+                addr -= 1
                 continue
+            elif instruction.strip().__len__() > 5:
+                self.mem.write(addr, instruction[0:5])
+                continue
+
             try:
                 self.mem.write(addr, instruction.strip())
             except IndexError:
@@ -238,6 +253,7 @@ class App:
             except ValueError:
                 messagebox.showerror("Error", f"Invalid instruction: {instruction}")
                 return
+        self.status_label.config(text="Status: Ready")
         self.update_memory_text()
 
     def adjust_memory_font_size(self, event=None):
@@ -272,10 +288,9 @@ class App:
         # Apply the adjusted font size
         self.memory_text.config(font=("Consolas", new_size), state=tk.DISABLED)
 
-
     def update_memory_text(self, text=None):
-        '''Update the memory_text widget with the current memory contents and highlight the pc'''
-        pc = self.cpu.pointer + 1
+        '''Update the memory_text widget with the current memory contents and highlights the pc'''
+        pc = self.cpu.pointer
 
         self.memory_text.config(state=tk.NORMAL)
         self.memory_text.delete("1.0", tk.END)
@@ -293,7 +308,7 @@ class App:
         for i, line in enumerate(memory_lines):
             instructions = line.split()  # Split the line into individual instructions
             for j, instruction in enumerate(instructions):
-                if i * len(instructions) + j == pc:
+                if i * len(instructions) + j == pc + 1:
                     self.memory_text.insert_colored_text(colored(instruction + " ", "green"))
                     # Display the current instruction in the instructions label
                     try:
@@ -302,7 +317,8 @@ class App:
                         self.instructions.config(text="Instruction")
                 else:
                     self.memory_text.insert_colored_text(instruction + " ")
-            self.memory_text.insert_colored_text("\n")
+            if not line[0:2] == "90": # Don't add a newline if it is the last line
+                self.memory_text.insert_colored_text("\n")
             
         self.memory_text.tag_add("center", "1.0", "end")
         self.memory_text.config(state=tk.DISABLED)
@@ -312,33 +328,54 @@ class App:
 
     def run_program(self):
         '''Run the program'''
+        if self.cpu.halted and self.mem.read(self.cpu.pointer) in ("+4300", "-4300"): # Don't run if the program is halted and send a halt message
+            messagebox.showinfo("Halted", "Program is halted")
+            return
+        elif self.cpu.halted and self.mem.read(self.cpu.pointer) == "+0000": # Don't run if the memory is empty
+            return
+        elif self.cpu.pointer > 0: # If the pointer is greater than 0, continue the program
+            self.cpu.halted = False
+            cont = True
+        else: # Otherwise, reset the halt flag, start the program and reinitialize the cpu
+            self.cpu.halted = False
+            cont = False
+
+        self.status_label.config(text="Status: Running")
+            
         try:
-            self.status_label.config(text="Status: Program Executed")
-            self.boot.run(self)
+            self.boot.run(self, cont)
+
         except Exception as e:
             messagebox.showerror("Runtime Error", str(e))
 
         self.update_memory_text()
+        self.halt_program()
     
     def step_program(self):
         '''Step through the program'''
-        try:
+        if self.cpu.halted and self.mem.read(self.cpu.pointer) in ("+4300", "-4300"):
+            messagebox.showinfo("Halted", "Program is halted")
+            return
+        elif self.cpu.halted and self.mem.read(self.cpu.pointer) == "+0000":
+            return
+        else:
             self.cpu.halted = False
+
+        self.status_label.config(text="Status: Stepped")
+        self.pc_label.config(text=str(self.cpu.pointer))
+        self.acc_label.config(text=str(self.cpu.accumulator))
+
+        try:
             operand = self.mem.word_to_int(self.mem.read(self.cpu.pointer))
-            
             self.cpu.operation(operand, self)
-
-            self.pc_label.config(text=str(self.cpu.pointer))
-            self.acc_label.config(text=str(self.cpu.accumulator))
-            self.status_label.config(text="Status: Stepped")
-
             self.cpu.pointer += 1
-
-            self.update_memory_text()
-            
+        
         except Exception as e:
             messagebox.showerror("Runtime Error", str(e))
-    
+
+        self.update_memory_text()
+        self.halt_program()
+
     def halt_program(self):
         '''Halt the program'''
         self.cpu.halted = True
@@ -360,9 +397,9 @@ class App:
         '''Display the instructions set window'''
         instructions_window = tk.Toplevel(self.root)
         instructions_window.title("Instructions Set")
-        instructions_window.geometry("800x350")
-        instructions_window.iconbitmap('cpu.ico')
-        instructions_window.minsize(800, 350)
+        instructions_window.geometry("1100x375")
+        instructions_window.iconbitmap('gui/cpu.ico')
+        instructions_window.minsize(1100, 375)
         instructions_label = tk.Label(instructions_window, text=textwrap.dedent('''
             I/O operation:
             READ = 10 Read a word from the keyboard into a specific location in memory.
@@ -383,5 +420,5 @@ class App:
             BRANCHNEG = 41 Branch to a specific location in memory if the accumulator is negative.
             BRANCHZERO = 42 Branch to a specific location in memory if the accumulator is zero.
             HALT = 43 Pause the program
-            '''), wraplength=750, justify=LEFT)
+            '''), wraplength=1200, justify=LEFT, font=("Consolas", 11))
         instructions_label.pack(padx=10, pady=10)

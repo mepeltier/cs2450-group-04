@@ -55,6 +55,6 @@ class Bootstrapper:
                     )
                     self.memory.write(addr, "+0000")
 
-    def run(self, gui):
+    def run(self, gui, cont=False):
         """Run the CPU."""
-        self.cpu.run(gui)
+        self.cpu.run(gui, cont)
