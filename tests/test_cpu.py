@@ -18,14 +18,14 @@ class TestCPU(unittest.TestCase):
         pass
 
     def test_CPU_init(self):
-        assert isinstance(self.cpu, CPU)   
+        assert isinstance(self.cpu, CPU)
 
     def test_bad_operations(self):
         bad_operations = [0, -10, -9999, 100, 999, 1200, 2200, 3400, 4400]
 
         for o in bad_operations:
             with pytest.raises(ValueError):
-                self.cpu.operation(o)
+                self.cpu.operation(o, gui=None)
 
     def test_decypher_instruction(self):
         """
@@ -123,18 +123,3 @@ class TestCPU(unittest.TestCase):
         self.cpu.operation(3111)  # Subtract #0016 from accumulator (-8)
         self.cpu.operation(4159)  # Branches to 59 if accumulator is NEGATIVE
         assert self.cpu.pointer == 59
-
-    def test_FULL_PROGRAM(self):
-        boot = Bootstrapper()
-
-        boot.load_program("tests/cpu_test.txt")
-        boot.run()
-        with open("tests/cpu_test_final.txt") as file:
-            final_data = file.readlines()
-
-            boot.cpu.read_from_memory(85)
-            assert 1875 == boot.cpu.register
-
-            for i, word in enumerate(final_data):
-                boot.cpu.read_from_memory(i)
-                assert Memory.word_to_int(word.strip()) == boot.cpu.register

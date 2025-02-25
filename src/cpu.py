@@ -1,18 +1,14 @@
 """CPU for UVSim."""
 
 try:
-    from src.io_handler import IOHandler
-except ImportError:
-    from .io_handler import IOHandler
-
-try:
     from src.memory import Memory
 except ImportError:
     from .memory import Memory
 
-from typing import Optional
 from termcolor import colored
 import difflib
+import tkinter as tk
+from tkinter import messagebox
 
 
 class Halt(Exception):
@@ -41,7 +37,6 @@ class CPU:
     def __init__(
         self,
         memory: Memory,
-        io: IOHandler,
     ):
         """Initialize CPU module, using the boot_up function and default values to clear."""
         self.boot_up()
@@ -52,7 +47,6 @@ class CPU:
         self.current_memory_state = " "
 
         self.memory = memory
-        self.io = io
 
     def boot_up(self):
         """Clears all values to original defaults, allowing the CPU to be restarted."""
@@ -63,9 +57,6 @@ class CPU:
    
     def _get_memory(self):
         return self.memory
-
-    def _get_IO(self):
-        return self.io
 
     def print_memory_states_DEV_ONLY(self):
         """Prints the current state of the CPU/Memory with differences highlighted from the previous state
@@ -78,20 +69,19 @@ class CPU:
             return
 
         if prev_text is None:
-            print(curr_text)
-            return
+            return curr_text
 
         matcher = difflib.SequenceMatcher(None, prev_text, curr_text)
 
         for tag, i1, i2, j1, j2 in matcher.get_opcodes():
             if tag == "equal":
                 # Print unchanged text normally
-                print(curr_text[j1:j2], end="")
+                return curr_text
             elif tag in ["replace", "insert"]:
                 # Print new/changed text in green
-                print(colored(curr_text[j1:j2], "green"), end="")
+                return colored(curr_text[j1:j2], "green")
 
-    def run(self):
+    def run(self, gui=None, cont=False):
         """Creates loop that allows the CPU to run continuously
         Will self-increment to next instruction in memory and read until halted.
 
@@ -101,44 +91,38 @@ class CPU:
         Parameters:
             file_location - file location to read instructions into memory
         """
-        self.boot_up()        
-        max_instructions = CPU.MAX_INSTRUCTION_LIMIT
+        if not cont:
+            self.boot_up()
+            max_instructions = CPU.MAX_INSTRUCTION_LIMIT
+        else:
+            max_instructions = CPU.MAX_INSTRUCTION_LIMIT - self.pointer
 
         while max_instructions > 0:
             self.previous_memory_state = self.current_memory_state
-            self.current_memory_state = str(self.memory) + "\n" + str(self) + "\n"
-            self.print_memory_states_DEV_ONLY()
+            self.current_memory_state = str(self.memory)
+            if not gui is None:
+                gui.update_memory_text(self.print_memory_states_DEV_ONLY())
 
             try:
                 self.register = Memory.word_to_int(self.memory.read(self.pointer))
+                self.operation(self.register, gui)
                 self.pointer += 1
-                self.operation(self.register)
 
             except Halt:
                 self.halted = True
-                break
+                return
 
             except ValueError as e:
-                print(e)
+                return f"Error: {e}"
 
             except KeyboardInterrupt:
-                print("Keyboard Interrupted")
-                break
+                return "Keyboard Interrupt"
 
             finally:
                 max_instructions -= 1
 
         if max_instructions == 0:
-            print("MAX INSTRUCTIONS LIMIT REACHED : Halting")
-
-    def __str__(self):
-        """Returns a string of the current state of the CPU."""
-        return (
-            "CPU State\n"
-            f"Accumulator:{self.accumulator}\n"
-            f"Register:{self.register}\n"
-            f"Pointer:{self.pointer}\n"
-        )
+            return "MAX INSTRUCTIONS LIMIT REACHED : Halting"
 
     @staticmethod
     def decypher_instruction(word):
@@ -171,16 +155,17 @@ class CPU:
 
         return (operator, operand)
 
-    def operation(self, word):
-        """Function to run a specific instruction (word).
-
-        Instruction function is then ran.
+    def operation(self, word, gui=None, matchAndReturnInstInfo=False):
+        """Function to run a specific instruction (word) or return it's name.
 
         Parameters:
             word - Is validated
+            gui - GUI object to interact with the user
+            matchAndReturnName - If True, then the name of the instruction is returned only
 
         Return Values:
-            None
+            - If matchAndReturnName is True, then the name of the instruction is returned
+            - If matchAndReturnName is False, then the instruction is ran and nothing is returned
 
         Raises:
             ValueError:
@@ -196,36 +181,60 @@ class CPU:
             match operator:
                 # I/O Operations
                 case 10:
-                    self.op_READ(operand)
+                    if matchAndReturnInstInfo:
+                        return f"{self.memory.int_to_word(word)}: READ (10)\nRead a word from the keyboard into memory location {operand}."
+                    self.op_READ(operand, gui)
                 case 11:
-                    self.op_WRITE(operand)
+                    if matchAndReturnInstInfo:
+                        return f"{self.memory.int_to_word(word)}: WRITE (11)\nWrite the word from memory location {operand} to screen."
+                    self.op_WRITE(operand, gui)
 
                 # Load/Store Operations
                 case 20:
+                    if matchAndReturnInstInfo:
+                        return f"{self.memory.int_to_word(word)}: LOAD (20)\nLoad the word from memory location {operand} into the accumulator."
                     self.op_LOAD(operand)
                 case 21:
+                    if matchAndReturnInstInfo:
+                        return f"{self.memory.int_to_word(word)}: STORE (21)\nStore the word from the accumulator into memory location {operand}."
                     self.op_STORE(operand)
 
                 # Arithmetic Operation
                 case 30:
+                    if matchAndReturnInstInfo:
+                        return f"{self.memory.int_to_word(word)}: ADD (30)\nAdd the word from memory location {operand} to the word in the accumulator (leave the result in the accumulator)"
                     self.op_ADD(operand)
                 case 31:
+                    if matchAndReturnInstInfo:
+                        return f"{self.memory.int_to_word(word)}: SUBTRACT (31)\nSubtract the word from memory location {operand} to the word in the accumulator (leave the result in the accumulator)."
                     self.op_SUBTRACT(operand)
                 case 32:
+                    if matchAndReturnInstInfo:
+                        return f"{self.memory.int_to_word(word)}: DIVIDE (32)\nDivide the word in the accumulator by the word from memory location {operand} (leave the result in the accumulator)."
                     self.op_DIVIDE(operand)
                 case 33:
+                    if matchAndReturnInstInfo:
+                        return f"{self.memory.int_to_word(word)}: MULTIPLY (33)\nMultiply the word from memory location {operand} to the word in the accumulator (leave the result in the accumulator)."
                     self.op_MULTIPLY(operand)
 
                 # Control Operations
                 case 40:
+                    if matchAndReturnInstInfo:
+                        return f"{self.memory.int_to_word(word)}: BRANCH (40)\nBranch to memory location {operand}."
                     self.op_BRANCH(operand)
                 case 41:
+                    if matchAndReturnInstInfo:
+                        return f"{self.memory.int_to_word(word)}: BRANCHNEG (41)\nBranch to memory location {operand} if the accumulator is negative."
                     self.op_BRANCHNEG(operand)
                 case 42:
+                    if matchAndReturnInstInfo:
+                        return f"{self.memory.int_to_word(word)}: BRANCHZERO (42)\nBranch to memory location {operand} if the accumulator is zero."
                     self.op_BRANCHZERO(operand)
                 case 43:
+                    if matchAndReturnInstInfo:
+                        return f"{self.memory.int_to_word(word)}: HALT (43)\nPause the program."
                     # Raises HALT
-                    self.op_HALT(operand)
+                    self.op_HALT()
 
                 # Test Operators
                 case 99:
@@ -257,23 +266,45 @@ class CPU:
         """
         self.memory.write(address, value)
 
-    def op_READ(self, operand):
-        """Mini Method used to read a 4-digit signed instruction from the CMD
-        to a specific memory location (operand).
+    def op_READ(self, operand, gui):
+        """Mini Method used to read a 4-digit signed instruction from 
+        the io_text entry object in the GUI and save it to a specific 
+        memory location (operand).
 
         Parameters:
             operand - Memory Location (2-digits)
 
         Return - None
         """
-        self.register = int(
-            self.io.read_operation("4-digit signed instruction | READ: ")
-        )
+        def read_input(event):
+            while (True):
+                operand = gui.io_text.get().strip()
+
+                try:
+                    gui.input.set(self.memory.word_to_int(operand))
+                    break
+                except ValueError as e:
+                    messagebox.showerror("Error", str(e))
+                    gui.root.wait_variable(gui.input)
+                    continue
+        
+        gui.io_text.config(state=tk.NORMAL)
+        gui.io_text.delete("0", "end")
+        gui.io_text.bind("<Return>", read_input)
+        gui.io_label.configure(text="Read a 4-digit signed instruction: ")
+        gui.input = tk.StringVar()
+        gui.root.wait_variable(gui.input)
+        gui.io_text.delete("0", "end")
+        gui.io_label.configure(text="I/O")
+        gui.io_text.unbind("<Return>")
+        gui.io_text.config(state=tk.DISABLED)
+
+        self.register = int(gui.input.get().strip())
         self.load_to_memory(operand, self.register)
 
-    def op_WRITE(self, operand):
+    def op_WRITE(self, operand, gui):
         """Mini Method used to write data from memory at
-        a specific memory location (operand) to the CMD or STDOUT.
+        a specific memory location (operand) to the io_text entry object in the GUI.
 
         Parameters:
             operand - Memory Location (2-digits)
@@ -281,7 +312,9 @@ class CPU:
         Return - None
         """
         self.read_from_memory(operand)
-        self.io.write(self.register, log=self.log)
+        gui.io_text.config(state=tk.NORMAL)
+        gui.io_label.configure(text="Write Output:")
+        gui.io_text.insert(tk.END, self.memory.int_to_word(self.register))
 
     def op_LOAD(self, operand):
         """Mini Method used to load a word from memory at the operand location
@@ -388,7 +421,7 @@ class CPU:
         if self.accumulator == 0:
             self.op_BRANCH(operand)
 
-    def op_HALT(self, operand):
+    def op_HALT(self):
         """Mini Method used to halt the CPU.
 
         Parameters:
