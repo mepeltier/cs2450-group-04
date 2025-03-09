@@ -201,7 +201,7 @@ class App:
         self.update_memory_text(self.mem.__str__())
         self.memory_text.tag_add("center", "1.0", "end")  # Center the rest of the text
         self.memory_text.config(state=tk.DISABLED)
-        self.memory_text.bind("<Configure>", self.adjust_memory_font_size)
+        self.memory_text.bind("<Configure>", self.adjust_memory_font_size) # Binds the adjust memory font size when window is changed
 
     def setup_control_frame(self, main_frame):
         '''Sets up the control frame for controlling the program'''
@@ -275,7 +275,7 @@ class App:
         self.update_memory_text()
 
     def adjust_memory_font_size(self, event=None):
-        """Dynamically adjusts font size to fit text within memory_text widget with some padding."""
+        '''Dynamically adjusts font size to fit text within memory_text widget with some padding.'''
         self.memory_text.config(state=tk.NORMAL)  # Temporarily enable editing
 
         text = self.memory_text.get("1.0", "end-1c").strip()
@@ -283,8 +283,8 @@ class App:
             return  # Avoid errors when text is empty
 
         # Get widget dimensions
-        widget_width = self.memory_text.winfo_width() * 0.97  # 5% padding on width
-        widget_height = self.memory_text.winfo_height() * 0.97  # 5% padding on height
+        widget_width = self.memory_text.winfo_width() * 0.97  # 3% padding on width
+        widget_height = self.memory_text.winfo_height() * 0.97  # 3% padding on height
         new_size = 8  # Start with a base font size
 
         # Create a temporary font object
