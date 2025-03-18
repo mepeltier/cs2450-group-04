@@ -55,13 +55,41 @@ class App:
     '''GUI functionality'''
     def __init__(self, boot, InitWithFileLoaded=None):
         '''Initialize the GUI'''
+        self.boot = boot
+        self.mem = boot.memory
+        self.cpu = boot.cpu
+
+        self.setup_root()
+        self.setup_menu_bar()
+
+        # Configure root grid weights
+        self.root.grid_columnconfigure(0, weight=0)  # Remove weight from left column
+        self.root.grid_columnconfigure(1, weight=1)  # Make main frame take all extra space
+        self.root.grid_rowconfigure(0, weight=1)
+
+        # Configure Style
+        style = ttk.Style(self.root)
+        style.theme_use("alt")
+
+        self.setup_program_frame()
+        self.setup_main_frame()
+
+        # Check if a file was passed as an argument and load to program_text
+        if InitWithFileLoaded:
+            self.load_file(InitWithFileLoaded)
+        
+        self.root.mainloop()
+    
+    def setup_root(self):
+        '''Sets up the root behavior of the window'''
         self.root = tk.Tk()
         self.root.title("UVSim - BasicML Simulator")
         self.root.geometry('960x552')
         self.root.minsize(960, 552)
         self.root.iconbitmap('gui/cpu.ico')
-
-        # Define menubar
+    
+    def setup_menu_bar(self):
+        '''Sets up the menu bar and its behavior'''
         menubar = Menu(self.root)
         filemenu = Menu(menubar, tearoff=0)
         filemenu.add_command(label="Open", command=self.load_file)  # Add open file option
@@ -75,29 +103,12 @@ class App:
         menubar.add_cascade(label="Help", menu=helpmenu)
 
         self.root.config(menu=menubar)
-
-
-        self.boot = boot
-        self.mem = boot.memory
-        self.cpu = boot.cpu
-
-
-        # Configure root grid weights
-        self.root.grid_columnconfigure(0, weight=0)  # Remove weight from left column
-        self.root.grid_columnconfigure(1, weight=1)  # Make main frame take all extra space
-        self.root.grid_rowconfigure(0, weight=1)
-
-
-        style = ttk.Style(self.root)
-        style.theme_use("alt")
-
-
-        # Declare and Place Section Framing
+    
+    def setup_program_frame(self):
+        '''Sets up the program frame, the area for loading in and editing the program'''
+        # Declare and Place Program Framing
         prog_input_frame = ttk.Frame(self.root, padding=10)
-        main_frame = ttk.Frame(self.root, padding=10)
-
-        prog_input_frame.grid(row=0, column=0, sticky="ns")
-        main_frame.grid(row=0, column=1, sticky=NSEW)
+        prog_input_frame.grid(row=0, column=0, sticky="ns") # Sticks to the top left
 
         # Configure prog_input_frame grid weights
         prog_input_frame.grid_rowconfigure(3, weight=1)  # Make row with program_text expandable
@@ -117,27 +128,44 @@ class App:
         self.program_text.grid(column=0, row=3, columnspan=2, padx=5, pady=5, sticky="nsew")
         scrollbar.grid(column=2, row=3, pady=5, sticky="ns")
 
+    def setup_main_frame(self):
+        '''Sets up the main frame of the program. Including the instruction frame, memory frame, and control frame'''
+        main_frame = ttk.Frame(self.root, padding=10)
+        main_frame.grid(row=0, column=1, sticky=NSEW) # Expands to fill the right
+
         # Configure main_frame grid weights
         main_frame.grid_rowconfigure(1, weight=1)  # Make memory frame expandable
         main_frame.grid_columnconfigure(0, weight=1)
+        
+        self.setup_instruction_frame(main_frame)
+        self.setup_memory_frame(main_frame)
+        self.setup_control_frame(main_frame)
 
+
+    def setup_instruction_frame(self, main_frame):
+        '''Sets up the instruction frame for providing information to the user'''
         # Declare and Place Text box for Instructions
         inst_frame = tk.Frame(main_frame, padx=10, pady=10)
+        # Configure inst_frame to expand horizontally
+        inst_frame.grid_columnconfigure(0, weight=1)
+
         self.instructions = tk.Label(inst_frame, text="Instruction", font=("Consolas", 11), anchor="center", height=3, wraplength=550)
-        seperator = ttk.Separator(inst_frame, orient=HORIZONTAL)
         inst_frame.grid(row=0, column=0, sticky="new")  # Stick to top
         self.instructions.grid(row=0, column=0, sticky="ew", ipady=24)  # Center the label
+
+        seperator = ttk.Separator(inst_frame, orient=HORIZONTAL)
         seperator.grid(row=1, column=0, columnspan=3, sticky="ew") # Add a separator
 
-        # Configure inst_frame to expand horizontally
-        inst_frame.grid_columnconfigure(0, weight=1)  # Allow the instruction frame to expand
-
+    def setup_memory_frame(self, main_frame):
+        '''Sets up the memory frame, containing the the memory information. Ensuring the memory text resizes when the window changes.'''
         # Declare CPU Info Frame, Status label and Memory Display text in Memory Frame
         memory_frame = tk.Frame(main_frame, padx=10, pady=10)
         memory_frame.grid(row=1, column=0, sticky="nsew")  # Make memory_frame expandable
 
         # Configure grid weights for memory_frame
         memory_frame.grid_rowconfigure(2, weight=1)  # Make the row with memory_text expandable
+        memory_frame.grid_columnconfigure(0, weight=1)  # Allow the memory  to expand
+
 
         # Place CPU info labels at the top of the memory_frame
         memory_label = ttk.Label(memory_frame, text="Memory")
@@ -165,9 +193,6 @@ class App:
         self.status_label.grid(row=0, column=8, sticky=EW)
         boldseperator1.grid(row=1, column=0, columnspan=9, sticky=EW)
 
-        # Configure memory_frame to expand horizontally
-        memory_frame.grid_columnconfigure(0, weight=1)  # Allow the memory text to expand
-
         # Update memory text to expand
         self.memory_text.grid(row=2, column=0, columnspan=9, sticky="nsew")  # Ensure it fills the space
 
@@ -176,12 +201,13 @@ class App:
         self.update_memory_text(self.mem.__str__())
         self.memory_text.tag_add("center", "1.0", "end")  # Center the rest of the text
         self.memory_text.config(state=tk.DISABLED)
+        self.memory_text.bind("<Configure>", self.adjust_memory_font_size) # Binds the adjust memory font size when window is changed
 
-        self.memory_text.bind("<Configure>", self.adjust_memory_font_size)
-        self.adjust_memory_font_size()
-        
+    def setup_control_frame(self, main_frame):
+        '''Sets up the control frame for controlling the program'''
         # Declare and Place run, step, halt, reset buttons, and I/O text in Control Frame
         control_frame = ttk.Frame(main_frame, padding=10)
+        control_frame.grid_columnconfigure(2, weight=1)  # Allow the I/O to expand horizontally
 
         run_btn = ttk.Button(control_frame, text="Run", command=self.run_program, padding=5)
         step_btn = ttk.Button(control_frame, text="Step", command=self.step_program, padding=5)
@@ -201,14 +227,6 @@ class App:
         self.io_label.grid(row=0, column=2, padx=5, pady=5, sticky="nw")
         self.io_text.grid(row=1, rowspan=3, column=2, padx=5, pady=5, sticky="ew")
 
-        # Configure control_frame to expand horizontally
-        control_frame.grid_columnconfigure(2, weight=1)  # Allow the I/O text to expand
-
-        # Check if a file was passed as an argument and load to program_text
-        if InitWithFileLoaded:
-            self.load_file(InitWithFileLoaded)
-        
-        self.root.mainloop()
 
     def load_file(self, file_path=None):
         '''Load a file into the program_text widget'''
@@ -257,7 +275,7 @@ class App:
         self.update_memory_text()
 
     def adjust_memory_font_size(self, event=None):
-        """Dynamically adjusts font size to fit text within memory_text widget with some padding."""
+        '''Dynamically adjusts font size to fit text within memory_text widget with some padding.'''
         self.memory_text.config(state=tk.NORMAL)  # Temporarily enable editing
 
         text = self.memory_text.get("1.0", "end-1c").strip()
@@ -265,8 +283,8 @@ class App:
             return  # Avoid errors when text is empty
 
         # Get widget dimensions
-        widget_width = self.memory_text.winfo_width() * 0.97  # 5% padding on width
-        widget_height = self.memory_text.winfo_height() * 0.97  # 5% padding on height
+        widget_width = self.memory_text.winfo_width() * 0.97  # 3% padding on width
+        widget_height = self.memory_text.winfo_height() * 0.97  # 3% padding on height
         new_size = 8  # Start with a base font size
 
         # Create a temporary font object
