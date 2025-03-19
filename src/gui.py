@@ -14,17 +14,21 @@ class ColoredText(tk.Text):
     def __init__(self, *args, **kwargs):
         '''Initialize the ColoredText class to inherit from the Text tkinter class'''
         super().__init__(*args, **kwargs)
-        self.tag_configure("green", foreground="green")
+        self.tag_configure("secondary", foreground="#e0e0e0")  # Default secondary color
+        self.tag_configure("primary", foreground="#000000")    # Default primary color
         self.tag_configure("center", justify="center")  # Left justification configuration
 
-    def insert_colored_text(self, text):
+    def insert_colored_text(self, text, color=None):
         '''Insert colored text into the text widget'''
-        parts = self.split_text_with_colors(text)
-        for part, color in parts:
-            if color:
-                self.insert(tk.END, part, color)
-            else:
-                self.insert(tk.END, part)
+        if color:
+            self.insert(tk.END, text, color)
+        else:
+            self.insert(tk.END, text)
+
+    def set_colors(self, primary_color, secondary_color):
+        '''Update the color tags with new colors'''
+        self.tag_configure("primary", foreground=primary_color)
+        self.tag_configure("secondary", foreground=secondary_color)
 
     def split_text_with_colors(self, text):
         '''Split the text with color codes'''
@@ -551,6 +555,9 @@ class App:
         self.memory_text.config(state=tk.NORMAL)
         self.memory_text.delete("1.0", tk.END)
 
+        # Update the colors for the memory text widget
+        self.memory_text.set_colors(self.primary_text_color, self.secondary_text_color)
+
         # Get the current memory lines as a list
         if not text:
             text = self.mem.__str__()
@@ -565,14 +572,14 @@ class App:
             instructions = line.split()  # Split the line into individual instructions
             for j, instruction in enumerate(instructions):
                 if i * len(instructions) + j == pc + 1:
-                    self.memory_text.insert_colored_text(colored(instruction + " ", "green"))
+                    self.memory_text.insert_colored_text(instruction + " ", "secondary")
                     # Display the current instruction in the instructions label
                     try:
                         self.instructions.config(text=f"{self.cpu.operation(self.mem.word_to_int(instruction), self, True)}")
                     except:
                         self.instructions.config(text="Instruction")
                 else:
-                    self.memory_text.insert_colored_text(instruction + " ")
+                    self.memory_text.insert_colored_text(instruction + " ", "primary")
             if not line[0:2] == "90": # Don't add a newline if it is the last line
                 self.memory_text.insert_colored_text("\n")
             
@@ -778,6 +785,7 @@ class App:
         if hasattr(self, 'color_indicator'):
             self.color_indicator.configure(bg=self.primary_color)
         
+        self.update_memory_text()
         # Refresh UI
         self.root.update_idletasks()
 
