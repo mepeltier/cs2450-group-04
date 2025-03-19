@@ -4,7 +4,9 @@ import textwrap
 import tkinter as tk
 from tkinter import *
 from termcolor import colored
-from tkinter import filedialog, messagebox, ttk, font
+from tkinter import filedialog, messagebox, ttk, font, colorchooser
+import json
+import os
 
         
 class ColoredText(tk.Text):
@@ -51,6 +53,157 @@ class ColoredText(tk.Text):
             parts.append((current_part, current_color))
         return parts
 
+class ColorChooser:
+    '''Custom color chooser dialog'''
+    def __init__(self, parent):
+        self.parent = parent
+        self.dialog = None
+        # Get current colors from parent (App instance)
+        self.primary_color = parent.primary_color
+        self.secondary_color = parent.secondary_color
+        self.primary_text_color = parent.primary_text_color
+        self.secondary_text_color = parent.secondary_text_color
+        
+    def show(self):
+        '''Display the color chooser dialog'''
+        self.dialog = Toplevel(self.parent.root)  # Use parent.root as the Tkinter parent
+        self.dialog.title("Customize Colors")
+        self.dialog.geometry("400x250")  # Increased height to accommodate reset button
+        self.dialog.resizable(False, False)
+        self.dialog.transient(self.parent.root)
+        self.dialog.grab_set()
+        
+        # Configure dialog grid weights to allow button frame to stick to bottom
+        self.dialog.grid_columnconfigure(0, weight=1)
+        self.dialog.grid_rowconfigure(0, weight=1)
+        self.dialog.grid_rowconfigure(1, weight=0)
+        
+        # Create main frame for color options
+        main_frame = Frame(self.dialog, padx=20, pady=20)
+        main_frame.grid(row=0, column=0, sticky="nsew")
+        
+        # Color picker sections
+        Label(main_frame, text="Primary Color:", anchor=W).grid(row=0, column=0, sticky=W, pady=5)
+        self.primary_btn = Button(main_frame, width=6, height=1,
+                                 command=lambda: self.choose_color("primary"),
+                                 relief=RAISED, borderwidth=2)
+        self.primary_btn.grid(row=0, column=1, padx=10)
+        self.primary_label = Label(main_frame, text=self.primary_color)
+        self.primary_label.grid(row=0, column=2, sticky=W)
+        
+        Label(main_frame, text="Secondary Color:", anchor=W).grid(row=1, column=0, sticky=W, pady=5)
+        self.secondary_btn = Button(main_frame, width=6, height=1,
+                                   command=lambda: self.choose_color("secondary"),
+                                   relief=RAISED, borderwidth=2)
+        self.secondary_btn.grid(row=1, column=1, padx=10)
+        self.secondary_label = Label(main_frame, text=self.secondary_color)
+        self.secondary_label.grid(row=1, column=2, sticky=W)
+        
+        Label(main_frame, text="Primary Text Color:", anchor=W).grid(row=2, column=0, sticky=W, pady=5)
+        self.primary_text_btn = Button(main_frame, width=6, height=1,
+                                      command=lambda: self.choose_color("primary_text"),
+                                      relief=RAISED, borderwidth=2)
+        self.primary_text_btn.grid(row=2, column=1, padx=10)
+        self.primary_text_label = Label(main_frame, text=self.primary_text_color)
+        self.primary_text_label.grid(row=2, column=2, sticky=W)
+        
+        Label(main_frame, text="Secondary Text Color:", anchor=W).grid(row=3, column=0, sticky=W, pady=5)
+        self.secondary_text_btn = Button(main_frame, width=6, height=1,
+                                        command=lambda: self.choose_color("secondary_text"),
+                                        relief=RAISED, borderwidth=2)
+        self.secondary_text_btn.grid(row=3, column=1, padx=10)
+        self.secondary_text_label = Label(main_frame, text=self.secondary_text_color)
+        self.secondary_text_label.grid(row=3, column=2, sticky=W)
+        
+        # Configure button colors with all necessary properties
+        self.update_button_colors()
+        
+        # Button frame - now placed at the bottom of the dialog using grid
+        button_frame = Frame(self.dialog, padx=10, pady=10)
+        button_frame.grid(row=1, column=0, sticky="ew")
+        button_frame.grid_columnconfigure(0, weight=1)  # Make buttons right-aligned
+        
+        # Button container for right alignment
+        buttons_container = Frame(button_frame)
+        buttons_container.grid(row=0, column=0, sticky="e")
+        
+        # Add Reset to Default button
+        reset_btn = Button(buttons_container, text="Reset to Default", command=self.reset_to_default)
+        reset_btn.pack(side=LEFT, padx=5)
+        
+        Button(buttons_container, text="Apply", command=self.apply_colors).pack(side=LEFT, padx=5)
+        Button(buttons_container, text="Cancel", command=self.dialog.destroy).pack(side=LEFT, padx=5)
+        
+        # Center dialog on parent
+        self.dialog.update_idletasks()
+        width = self.dialog.winfo_width()
+        height = self.dialog.winfo_height()
+        x = self.parent.root.winfo_rootx() + (self.parent.root.winfo_width() - width) // 2
+        y = self.parent.root.winfo_rooty() + (self.parent.root.winfo_height() - height) // 2
+        self.dialog.geometry(f"{width}x{height}+{x}+{y}")
+        
+        self.dialog.wait_window()
+    
+    def update_button_colors(self):
+        '''Update all button colors with proper configuration'''
+        for color_type in ['primary', 'secondary', 'primary_text', 'secondary_text']:
+            color = getattr(self, f"{color_type}_color")
+            button = getattr(self, f"{color_type}_btn")
+            button.configure(
+                bg=color,
+                # activebackground=color,
+                # activeforeground=color,
+                # highlightbackground=color,
+                # highlightcolor=color
+            )
+    
+    def choose_color(self, color_type):
+        '''Open color picker and update the chosen color'''
+        color = colorchooser.askcolor(initialcolor=getattr(self, f"{color_type}_color"))
+        if color[1]:  # If color was chosen (not canceled)
+            setattr(self, f"{color_type}_color", color[1])
+            # Update button color to display the selected color
+            button = getattr(self, f"{color_type}_btn")
+            button.configure(
+                bg=color[1],
+                activebackground=color[1],
+                activeforeground=color[1],
+                highlightbackground=color[1],
+                highlightcolor=color[1]
+            )
+            # Update color value label
+            getattr(self, f"{color_type}_label").config(text=color[1])
+    
+    def apply_colors(self):
+        '''Apply the chosen colors to the main application'''
+        # Update parent's colors
+        self.parent.primary_color = self.primary_color
+        self.parent.secondary_color = self.secondary_color
+        self.parent.primary_text_color = self.primary_text_color
+        self.parent.secondary_text_color = self.secondary_text_color
+        
+        # Apply colors to UI
+        self.parent.apply_colors()
+        self.dialog.destroy()
+
+    def reset_to_default(self):
+        '''Reset colors to default values'''
+        # Set colors to default values
+        self.primary_color = self.parent.default_primary_color
+        self.secondary_color = self.parent.default_secondary_color
+        self.primary_text_color = self.parent.default_primary_text_color
+        self.secondary_text_color = self.parent.default_secondary_text_color
+        
+        # Update button colors
+        self.update_button_colors()
+        
+        # Update color value labels
+        self.primary_label.config(text=self.primary_color)
+        self.secondary_label.config(text=self.secondary_color)
+        self.primary_text_label.config(text=self.primary_text_color)
+        self.secondary_text_label.config(text=self.secondary_text_color)
+
+
 class App:
     '''GUI functionality'''
     def __init__(self, boot, InitWithFileLoaded=None):
@@ -58,6 +211,18 @@ class App:
         self.boot = boot
         self.mem = boot.memory
         self.cpu = boot.cpu
+
+        # Initialize default colors
+        self.default_primary_color = "#f0f0f0"  # Light gray for backgrounds
+        self.default_secondary_color = "#e0e0e0"  # Slightly darker gray for buttons/accents
+        self.default_primary_text_color = "#000000"  # Black for main text
+        self.default_secondary_text_color = "#505050"  # Dark gray for secondary text
+
+        # Set current colors to default
+        self.primary_color = self.default_primary_color
+        self.secondary_color = self.default_secondary_color
+        self.primary_text_color = self.default_primary_text_color
+        self.secondary_text_color = self.default_secondary_text_color
 
         self.setup_root()
         self.setup_menu_bar()
@@ -78,6 +243,9 @@ class App:
         if InitWithFileLoaded:
             self.load_file(InitWithFileLoaded)
         
+        # Apply initial colors
+        self.apply_colors()
+        
         self.root.mainloop()
     
     def setup_root(self):
@@ -97,6 +265,10 @@ class App:
         filemenu.add_command(label="Exit", command=self.root.quit)  # Add exit option
         menubar.add_cascade(label="File", menu=filemenu)  # Add file menu to menubar
 
+        appearancemenu = Menu(menubar, tearoff=0)
+        appearancemenu.add_command(label="Customize Colors", command=self.open_color_dialog)
+        menubar.add_cascade(label="Appearance", menu=appearancemenu)
+
         helpmenu = Menu(menubar, tearoff=0)
         helpmenu.add_command(label="Instructions Set", command=self.instructions_window)
         helpmenu.add_command(label="About", command=lambda: messagebox.showinfo("About", "UVSim - BasicML Simulator\n\nVersion 2.0\n"))
@@ -111,12 +283,13 @@ class App:
         prog_input_frame.grid(row=0, column=0, sticky="ns") # Sticks to the top left
 
         # Configure prog_input_frame grid weights
-        prog_input_frame.grid_rowconfigure(3, weight=1)  # Make row with program_text expandable
+        prog_input_frame.grid_rowconfigure(4, weight=1)  # Make row with program_text expandable
         prog_input_frame.grid_columnconfigure((0, 1), weight=0)  # Make columns equal width
 
         # Declare and Place Program Input Frame, Scrollbar, buttons, and opcode textbox
         load_file_btn = ttk.Button(prog_input_frame, text="Load File", command=self.load_file, padding=5)
         clear_btn = ttk.Button(prog_input_frame, text="Clear", command=self.clear_program, padding=5)
+        
         load_mem_btn = ttk.Button(prog_input_frame, text="Load Into Memory", command=self.load_memory, padding=5)
         self.program_text = tk.Text(prog_input_frame, height=25, width=10)
         scrollbar = ttk.Scrollbar(prog_input_frame, orient=VERTICAL, command=self.program_text.yview)
@@ -124,9 +297,15 @@ class App:
 
         load_file_btn.grid(column=0, row=0, padx=3, pady=3, sticky="ew")
         clear_btn.grid(column=1, row=0, padx=3, pady=3, sticky="ew")
+
         load_mem_btn.grid(column=0, row=2, columnspan=2, padx=3, pady=3, sticky="ew")
-        self.program_text.grid(column=0, row=3, columnspan=2, padx=5, pady=5, sticky="nsew")
-        scrollbar.grid(column=2, row=3, pady=5, sticky="ns")
+        
+        # Add a small separator
+        separator = ttk.Separator(prog_input_frame, orient=HORIZONTAL)
+        separator.grid(column=0, row=3, columnspan=2, padx=3, pady=5, sticky="ew")
+        
+        self.program_text.grid(column=0, row=4, columnspan=2, padx=5, pady=5, sticky="nsew")
+        scrollbar.grid(column=2, row=4, pady=5, sticky="ns")
 
     def setup_main_frame(self):
         '''Sets up the main frame of the program. Including the instruction frame, memory frame, and control frame'''
@@ -440,3 +619,58 @@ class App:
             HALT = 43 Pause the program
             '''), wraplength=1200, justify=LEFT, font=("Consolas", 11))
         instructions_label.pack(padx=10, pady=10)
+
+    def open_color_dialog(self):
+        '''Open the color chooser dialog'''
+        color_dialog = ColorChooser(self)  # Pass the App instance directly
+        color_dialog.show()
+        
+        # Update color indicator button after dialog closes
+        if hasattr(self, 'color_indicator'):
+            self.color_indicator.configure(bg=self.primary_color)
+
+    def apply_colors(self):
+        '''Apply current color settings to all UI elements'''
+        # Apply colors to main frames and widgets
+        
+        # Root background
+        self.root.configure(bg=self.primary_color)
+        
+        # Program frame
+        for widget in self.root.winfo_children():
+            if isinstance(widget, ttk.Frame):
+                widget.configure(style='Custom.TFrame')
+        
+        # Program text
+        self.program_text.configure(bg=self.primary_color, fg=self.primary_text_color)
+        
+        # Memory text
+        self.memory_text.configure(bg=self.primary_color, fg=self.primary_text_color)
+        
+        # IO text
+        self.io_text.configure(style='Custom.TEntry')
+        
+        # Labels
+        for widget in self.root.winfo_children():
+            if isinstance(widget, ttk.Label) or isinstance(widget, Label):
+                widget.configure(foreground=self.secondary_text_color)
+        
+        # Update color indicator button
+        if hasattr(self, 'color_indicator'):
+            self.color_indicator.configure(bg=self.primary_color)
+        
+        # Create/update custom styles for ttk widgets
+        style = ttk.Style()
+        
+        # Frame style
+        style.configure('Custom.TFrame', background=self.primary_color)
+        
+        # Button style
+        style.configure('TButton', background=self.secondary_color, foreground=self.secondary_text_color)
+        
+        # Entry style
+        style.configure('Custom.TEntry', fieldbackground=self.primary_color, foreground=self.primary_text_color)
+        
+        # Refresh UI
+        self.root.update_idletasks()
+
