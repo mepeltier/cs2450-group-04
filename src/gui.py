@@ -250,16 +250,16 @@ class App:
         self.secondary_text_color = self.default_secondary_text_color
 
         self.setup_root()
+        
+        # Configure Style before building UI
+        self.setup_styles()
+        
         self.setup_menu_bar()
 
         # Configure root grid weights
         self.root.grid_columnconfigure(0, weight=0)  # Remove weight from left column
         self.root.grid_columnconfigure(1, weight=1)  # Make main frame take all extra space
         self.root.grid_rowconfigure(0, weight=1)
-
-        # Configure Style
-        style = ttk.Style(self.root)
-        style.theme_use("alt")
 
         self.program_frame = self.setup_program_frame()
         self.setup_main_frame()
@@ -280,6 +280,7 @@ class App:
         self.root.geometry('960x552')
         self.root.minsize(960, 552)
         self.root.iconbitmap('gui/cpu.ico')
+        
     
     def setup_menu_bar(self):
         '''Sets up the menu bar and its behavior'''
@@ -304,10 +305,11 @@ class App:
     def setup_program_frame(self):
         '''Sets up the program frame, the area for loading in and editing the program.
         Returns:
-            tk.Frame: The created program frame containing the program input area.
+            ttk.Frame: The created program frame containing the program input area.
         '''
-        # Declare and Place Program Framing
-        prog_input_frame = Frame(self.root, bg=self.secondary_color, padx=10, pady=10)
+
+        # Add inner frame with secondary color
+        prog_input_frame = ttk.Frame(self.root, style='Primary.TFrame', padding=10)
         prog_input_frame.grid(row=0, column=0, sticky="ns") # Sticks to the top left
 
         # Configure prog_input_frame grid weights
@@ -342,7 +344,7 @@ class App:
         Returns:
             ttk.Frame: The created main frame containing all program components.
         '''
-        main_frame = ttk.Frame(self.root, padding=10)
+        main_frame = ttk.Frame(self.root, style='Primary.TFrame')
         main_frame.grid(row=0, column=1, sticky=NSEW) # Expands to fill the right
 
         # Configure main_frame grid weights
@@ -360,14 +362,14 @@ class App:
         Args:
             main_frame (ttk.Frame): The parent frame to place the instruction frame in.
         Returns:
-            tk.Frame: The created instruction frame containing the instruction display.
+            ttk.Frame: The created instruction frame containing the instruction display.
         '''
         # Declare and Place Text box for Instructions
-        inst_frame = tk.Frame(main_frame, padx=10, pady=10)
+        inst_frame = ttk.Frame(main_frame, style='Primary.TFrame', padding=10)
         # Configure inst_frame to expand horizontally
         inst_frame.grid_columnconfigure(0, weight=1)
 
-        self.instructions = tk.Label(inst_frame, text="Instruction", font=("Consolas", 11), anchor="center", height=3, wraplength=550)
+        self.instructions = ttk.Label(inst_frame, text="Instruction", style='Instructions.TLabel')
         inst_frame.grid(row=0, column=0, sticky="new")  # Stick to top
         self.instructions.grid(row=0, column=0, sticky="ew", ipady=24)  # Center the label
 
@@ -381,10 +383,10 @@ class App:
         Args:
             main_frame (ttk.Frame): The parent frame to place the memory frame in.
         Returns:
-            tk.Frame: The created memory frame containing the memory display and CPU information.
+            ttk.Frame: The created memory frame containing the memory display and CPU information.
         '''
         # Declare CPU Info Frame, Status label and Memory Display text in Memory Frame
-        memory_frame = tk.Frame(main_frame, padx=10, pady=10)
+        memory_frame = ttk.Frame(main_frame, style='Primary.TFrame', padding=10)
         memory_frame.grid(row=1, column=0, sticky="nsew")  # Make memory_frame expandable
 
         # Configure grid weights for memory_frame
@@ -392,26 +394,26 @@ class App:
         memory_frame.grid_columnconfigure(0, weight=1)  # Allow the memory  to expand
 
         # Place CPU info labels at the top of the memory_frame
-        memory_label = ttk.Label(memory_frame, text="Memory")
+        self.memory_label = ttk.Label(memory_frame, text="Memory", style='Title.TLabel')
         boldseperator = ttk.Separator(memory_frame, orient=VERTICAL)
-        pc_frame = ttk.Label(memory_frame, text="PC:")
-        self.pc_label = ttk.Label(memory_frame, text="00")
+        pc_frame = ttk.Label(memory_frame, text="PC:", style='Primary.TLabel')
+        self.pc_label = ttk.Label(memory_frame, text="00", style='Primary.TLabel')
         seperator1 = ttk.Separator(memory_frame, orient=VERTICAL)
-        acc_frame = ttk.Label(memory_frame, text="Accumulator:")
-        self.acc_label = ttk.Label(memory_frame, text="+0000")
+        self.acc_frame = ttk.Label(memory_frame, text="Accumulator:", style='Primary.TLabel')
+        self.acc_label = ttk.Label(memory_frame, text="+0000", style='Primary.TLabel')
         seperator2 = ttk.Separator(memory_frame, orient=VERTICAL)
-        self.status_label = ttk.Label(memory_frame, text="Status: Ready", relief=tk.SUNKEN, anchor=tk.W)
+        self.status_label = ttk.Label(memory_frame, text="Status: Ready", style='Status.TLabel')
         boldseperator1 = ttk.Separator(memory_frame, orient=HORIZONTAL)
         self.memory_text = ColoredText(memory_frame, height=11, width=64, font=("Courier", 12), wrap=NONE, state=tk.DISABLED)
         self.memory_text.tag_configure("center", justify="center")
         
         # Place Memory Frame and its components
-        memory_label.grid(row=0, column=0, sticky=W)
+        self.memory_label.grid(row=0, column=0, sticky=W)
         boldseperator.grid(row=0, column=1, sticky=NS)
         pc_frame.grid(row=0, column=2)
         self.pc_label.grid(row=0, column=3)
         seperator1.grid(row=0, column=4, sticky=NS)
-        acc_frame.grid(row=0, column=5)
+        self.acc_frame.grid(row=0, column=5)
         self.acc_label.grid(row=0, column=6)
         seperator2.grid(row=0, column=7, sticky=NS)
         self.status_label.grid(row=0, column=8, sticky=EW)
@@ -434,10 +436,10 @@ class App:
         Args:
             main_frame (ttk.Frame): The parent frame to place the control frame in.
         Returns:
-            tk.Frame: The created control frame containing program control buttons and I/O.
+            ttk.Frame: The created control frame containing program control buttons and I/O.
         '''
         # Declare and Place run, step, halt, reset buttons, and I/O text in Control Frame
-        control_frame = Frame(main_frame, bg=self.secondary_color, padx=10, pady=10)
+        control_frame = ttk.Frame(main_frame, style='Primary.TFrame', padding=10)
         control_frame.grid_columnconfigure(2, weight=1)  # Allow the I/O to expand horizontally
 
         run_btn = ttk.Button(control_frame, text="Run", command=self.run_program, padding=5)
@@ -445,8 +447,8 @@ class App:
         halt_btn = ttk.Button(control_frame, text="Halt", command=self.halt_program, padding=5)
         reset_btn = ttk.Button(control_frame, text="Reset", command=self.reset_program, padding=5)
         seperator3 = ttk.Separator(control_frame, orient=VERTICAL)
-        self.io_label = ttk.Label(control_frame, text="I/O", font=("Consolas", 11))
-        self.io_text = ttk.Entry(control_frame, font=("Consolas", 25), state=tk.DISABLED)
+        self.io_label = ttk.Label(control_frame, text="I/O", style='Title.TLabel')
+        self.io_text = ttk.Entry(control_frame, font=("Consolas", 25), state=tk.DISABLED, style='IO.TEntry')
 
         control_frame.grid(row=2, column=0, sticky="sew")  # Stick to bottom
 
@@ -682,67 +684,92 @@ class App:
         if hasattr(self, 'color_indicator'):
             self.color_indicator.configure(bg=self.primary_color)
 
-    def apply_colors(self):
-        '''Apply current color settings to all UI elements'''
-        # Apply colors to main frames and widgets
+    def setup_styles(self):
+        '''Set up ttk styles and custom widget appearances'''
+        self.style = ttk.Style(self.root)
+        self.style.theme_use("alt")
         
-        # Root background
+        # Define core styles
+        self.style.configure('Primary.TFrame', background=self.primary_color)
+        self.style.configure('Secondary.TFrame', background=self.secondary_color)
+        
+        self.style.configure('Primary.TLabel', 
+                            background=self.primary_color,
+                            foreground=self.primary_text_color)
+        self.style.configure('Secondary.TLabel', 
+                            background=self.secondary_color,
+                            foreground=self.secondary_text_color)
+        
+        self.style.configure('TButton', 
+                            background=self.secondary_color,
+                            foreground=self.secondary_text_color)
+        
+        self.style.configure('IO.TEntry', 
+                            fieldbackground=self.secondary_color,
+                            foreground=self.secondary_text_color)
+        
+        # Define specific widget styles
+        self.style.configure('Status.TLabel', 
+                            foreground=self.secondary_text_color,
+                            relief=tk.SUNKEN, 
+                            anchor=tk.W)
+        
+        self.style.configure('Title.TLabel',
+                            font=("Consolas", 11),
+                            foreground=self.secondary_text_color)
+        
+        self.style.configure('Instructions.TLabel',
+                            font=("Consolas", 11),
+                            foreground=self.primary_color,
+                            anchor="center")
+
+    def apply_colors(self):
+        '''Apply current color settings to all UI elements by updating styles'''
+        # Update all styles with current colors
+        self.style.configure('Primary.TFrame', background=self.primary_color)
+        self.style.configure('Secondary.TFrame', background=self.secondary_color)
+        
+        self.style.configure('Primary.TLabel', 
+                            background=self.primary_color,
+                            foreground=self.primary_text_color)
+        self.style.configure('Secondary.TLabel', 
+                            background=self.secondary_color,
+                            foreground=self.secondary_text_color)
+        
+        self.style.configure('Status.TLabel', 
+                            foreground=self.secondary_text_color)
+        
+        self.style.configure('Title.TLabel',
+                            foreground=self.secondary_text_color)
+        
+        self.style.configure('Instructions.TLabel',
+                            foreground=self.primary_text_color)
+        
+        self.style.configure('TButton', 
+                            background=self.secondary_color,
+                            foreground=self.secondary_text_color)
+        
+        self.style.configure('IO.TEntry', 
+                            fieldbackground=self.secondary_color,
+                            foreground=self.secondary_text_color)
+        
+        # Root background (not a ttk widget)
         self.root.configure(bg=self.primary_color)
         
-        # Program frame
-        if hasattr(self, 'program_frame'):
-            self.program_frame.configure(bg=self.secondary_color)
-        
-        # Program text
+        # Regular Text widgets (not ttk)
         self.program_text.configure(
-            bg=self.primary_color,
+            bg=self.secondary_color,
             fg=self.primary_text_color
         )
-        
-        # Memory frame and text
-        if hasattr(self, 'memory_frame'):
-            self.memory_frame.configure(bg=self.secondary_color)
-
-        if hasattr(self, 'instruction_frame'):
-            self.instruction_frame.configure(bg=self.secondary_color)
-
-        # Control frame
-        if hasattr(self, 'control_frame'):
-            self.control_frame.configure(bg=self.secondary_color)
-
-        # program frame
-        if hasattr(self, 'program_frame'):
-            self.program_frame.configure(bg=self.secondary_color)
         
         self.memory_text.configure(
-            bg=self.primary_color,
+            bg=self.secondary_color,
             fg=self.primary_text_color
         )
         
-        # IO text
-        self.io_text.configure(style='Custom.TEntry')
-        
-        # Labels
-        for widget in self.root.winfo_children():
-            if isinstance(widget, ttk.Label) or isinstance(widget, Label):
-                widget.configure(foreground=self.secondary_text_color)
-        
-        # Update color indicator button
+        # Update color indicator button if it exists
         if hasattr(self, 'color_indicator'):
             self.color_indicator.configure(bg=self.primary_color)
-        
-        # Create/update custom styles for ttk widgets
-        style = ttk.Style()
-        
-        # Button style
-        style.configure('TButton', 
-                       background=self.secondary_color,
-                       foreground=self.secondary_text_color)
-        
-        # Entry style
-        style.configure('Custom.TEntry', 
-                       fieldbackground=self.secondary_color,
-                       foreground=self.secondary_text_color)
         
         # Refresh UI
         self.root.update_idletasks()
