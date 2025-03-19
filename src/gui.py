@@ -754,25 +754,25 @@ class App:
             self.instructions.configure(bg=self.secondary_color, fg=self.primary_text_color)
             
         if hasattr(self, 'memory_label'):
-            self.memory_label.configure(bg=self.secondary_color, fg=self.secondary_text_color)
+            self.memory_label.configure(bg=self.secondary_color, fg=self.primary_text_color)
             
         if hasattr(self, 'pc_label'):
-            self.pc_label.configure(bg=self.secondary_color, fg=self.secondary_text_color)
+            self.pc_label.configure(bg=self.secondary_color, fg=self.primary_text_color)
             
         if hasattr(self, 'acc_label'):
-            self.acc_label.configure(bg=self.secondary_color, fg=self.secondary_text_color)
+            self.acc_label.configure(bg=self.secondary_color, fg=self.primary_text_color)
             
         if hasattr(self, 'pc_frame'):
-            self.pc_frame.configure(bg=self.secondary_color, fg=self.secondary_text_color)
+            self.pc_frame.configure(bg=self.secondary_color, fg=self.primary_text_color)
             
         if hasattr(self, 'acc_frame'):
-            self.acc_frame.configure(bg=self.secondary_color, fg=self.secondary_text_color)
+            self.acc_frame.configure(bg=self.secondary_color, fg=self.primary_text_color)
             
         if hasattr(self, 'status_label'):
-            self.status_label.configure(bg=self.secondary_color, fg=self.secondary_text_color)
+            self.status_label.configure(bg=self.secondary_color, fg=self.primary_text_color)
             
         if hasattr(self, 'io_label'):
-            self.io_label.configure(bg=self.secondary_color, fg=self.secondary_text_color)
+            self.io_label.configure(bg=self.secondary_color, fg=self.primary_text_color)
         
         # Update color indicator button if it exists
         if hasattr(self, 'color_indicator'):
