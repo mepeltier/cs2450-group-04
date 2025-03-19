@@ -64,6 +64,27 @@ class ColorChooser:
         self.primary_text_color = parent.primary_text_color
         self.secondary_text_color = parent.secondary_text_color
         
+    def adjust_color_for_hover(self, color, darken=True):
+        '''Adjust color brightness for hover effect'''
+        # Convert hex to RGB
+        color = color.lstrip('#')
+        rgb = tuple(int(color[i:i+2], 16) for i in (0, 2, 4))
+        
+        # Adjust brightness
+        factor = 0.9 if darken else 1.0
+        new_rgb = tuple(int(c * factor) for c in rgb)
+        
+        # Convert back to hex
+        return '#{:02x}{:02x}{:02x}'.format(*new_rgb)
+    
+    def on_enter(self, e, frame, original_color):
+        '''Handle mouse enter event'''
+        frame.configure(bg=self.adjust_color_for_hover(original_color, True))
+    
+    def on_leave(self, e, frame, original_color):
+        '''Handle mouse leave event'''
+        frame.configure(bg=original_color)
+    
     def show(self):
         '''Display the color chooser dialog'''
         self.dialog = Toplevel(self.parent.root)  # Use parent.root as the Tkinter parent
@@ -82,40 +103,56 @@ class ColorChooser:
         main_frame = Frame(self.dialog, padx=20, pady=20)
         main_frame.grid(row=0, column=0, sticky="nsew")
         
-        # Color picker sections
+        # Color picker sections - not using buttons due to  Mac OS X compatibility issues
         Label(main_frame, text="Primary Color:", anchor=W).grid(row=0, column=0, sticky=W, pady=5)
-        self.primary_btn = Button(main_frame, width=6, height=1,
-                                 command=lambda: self.choose_color("primary"),
-                                 relief=RAISED, borderwidth=2)
+        self.primary_btn = Frame(main_frame, width=50, height=25,
+                               relief=RAISED, borderwidth=2)
         self.primary_btn.grid(row=0, column=1, padx=10)
+        self.primary_btn.bind('<Button-1>', lambda e: self.choose_color("primary"))
+        self.primary_btn.bind('<Enter>', lambda e: self.on_enter(e, self.primary_btn, self.primary_color))
+        self.primary_btn.bind('<Leave>', lambda e: self.on_leave(e, self.primary_btn, self.primary_color))
+        self.primary_btn.grid_propagate(False)  # Prevent frame from shrinking
+        
         self.primary_label = Label(main_frame, text=self.primary_color)
         self.primary_label.grid(row=0, column=2, sticky=W)
         
         Label(main_frame, text="Secondary Color:", anchor=W).grid(row=1, column=0, sticky=W, pady=5)
-        self.secondary_btn = Button(main_frame, width=6, height=1,
-                                   command=lambda: self.choose_color("secondary"),
-                                   relief=RAISED, borderwidth=2)
+        self.secondary_btn = Frame(main_frame, width=50, height=25,
+                                 relief=RAISED, borderwidth=2)
         self.secondary_btn.grid(row=1, column=1, padx=10)
+        self.secondary_btn.bind('<Button-1>', lambda e: self.choose_color("secondary"))
+        self.secondary_btn.bind('<Enter>', lambda e: self.on_enter(e, self.secondary_btn, self.secondary_color))
+        self.secondary_btn.bind('<Leave>', lambda e: self.on_leave(e, self.secondary_btn, self.secondary_color))
+        self.secondary_btn.grid_propagate(False)
+        
         self.secondary_label = Label(main_frame, text=self.secondary_color)
         self.secondary_label.grid(row=1, column=2, sticky=W)
         
         Label(main_frame, text="Primary Text Color:", anchor=W).grid(row=2, column=0, sticky=W, pady=5)
-        self.primary_text_btn = Button(main_frame, width=6, height=1,
-                                      command=lambda: self.choose_color("primary_text"),
-                                      relief=RAISED, borderwidth=2)
+        self.primary_text_btn = Frame(main_frame, width=50, height=25,
+                                    relief=RAISED, borderwidth=2)
         self.primary_text_btn.grid(row=2, column=1, padx=10)
+        self.primary_text_btn.bind('<Button-1>', lambda e: self.choose_color("primary_text"))
+        self.primary_text_btn.bind('<Enter>', lambda e: self.on_enter(e, self.primary_text_btn, self.primary_text_color))
+        self.primary_text_btn.bind('<Leave>', lambda e: self.on_leave(e, self.primary_text_btn, self.primary_text_color))
+        self.primary_text_btn.grid_propagate(False)
+        
         self.primary_text_label = Label(main_frame, text=self.primary_text_color)
         self.primary_text_label.grid(row=2, column=2, sticky=W)
         
         Label(main_frame, text="Secondary Text Color:", anchor=W).grid(row=3, column=0, sticky=W, pady=5)
-        self.secondary_text_btn = Button(main_frame, width=6, height=1,
-                                        command=lambda: self.choose_color("secondary_text"),
-                                        relief=RAISED, borderwidth=2)
+        self.secondary_text_btn = Frame(main_frame, width=50, height=25,
+                                      relief=RAISED, borderwidth=2)
         self.secondary_text_btn.grid(row=3, column=1, padx=10)
+        self.secondary_text_btn.bind('<Button-1>', lambda e: self.choose_color("secondary_text"))
+        self.secondary_text_btn.bind('<Enter>', lambda e: self.on_enter(e, self.secondary_text_btn, self.secondary_text_color))
+        self.secondary_text_btn.bind('<Leave>', lambda e: self.on_leave(e, self.secondary_text_btn, self.secondary_text_color))
+        self.secondary_text_btn.grid_propagate(False)
+        
         self.secondary_text_label = Label(main_frame, text=self.secondary_text_color)
         self.secondary_text_label.grid(row=3, column=2, sticky=W)
         
-        # Configure button colors with all necessary properties
+        # Configure color displays
         self.update_button_colors()
         
         # Button frame - now placed at the bottom of the dialog using grid
@@ -145,32 +182,20 @@ class ColorChooser:
         self.dialog.wait_window()
     
     def update_button_colors(self):
-        '''Update all button colors with proper configuration'''
+        '''Update all color display frames'''
         for color_type in ['primary', 'secondary', 'primary_text', 'secondary_text']:
             color = getattr(self, f"{color_type}_color")
-            button = getattr(self, f"{color_type}_btn")
-            button.configure(
-                bg=color,
-                # activebackground=color,
-                # activeforeground=color,
-                # highlightbackground=color,
-                # highlightcolor=color
-            )
+            frame = getattr(self, f"{color_type}_btn")
+            frame.configure(bg=color)
     
     def choose_color(self, color_type):
         '''Open color picker and update the chosen color'''
         color = colorchooser.askcolor(initialcolor=getattr(self, f"{color_type}_color"))
         if color[1]:  # If color was chosen (not canceled)
             setattr(self, f"{color_type}_color", color[1])
-            # Update button color to display the selected color
-            button = getattr(self, f"{color_type}_btn")
-            button.configure(
-                bg=color[1],
-                activebackground=color[1],
-                activeforeground=color[1],
-                highlightbackground=color[1],
-                highlightcolor=color[1]
-            )
+            # Update frame color to display the selected color
+            frame = getattr(self, f"{color_type}_btn")
+            frame.configure(bg=color[1])
             # Update color value label
             getattr(self, f"{color_type}_label").config(text=color[1])
     
@@ -194,7 +219,7 @@ class ColorChooser:
         self.primary_text_color = self.parent.default_primary_text_color
         self.secondary_text_color = self.parent.default_secondary_text_color
         
-        # Update button colors
+        # Update color displays
         self.update_button_colors()
         
         # Update color value labels
@@ -236,7 +261,7 @@ class App:
         style = ttk.Style(self.root)
         style.theme_use("alt")
 
-        self.setup_program_frame()
+        self.program_frame = self.setup_program_frame()
         self.setup_main_frame()
 
         # Check if a file was passed as an argument and load to program_text
@@ -277,9 +302,12 @@ class App:
         self.root.config(menu=menubar)
     
     def setup_program_frame(self):
-        '''Sets up the program frame, the area for loading in and editing the program'''
+        '''Sets up the program frame, the area for loading in and editing the program.
+        Returns:
+            tk.Frame: The created program frame containing the program input area.
+        '''
         # Declare and Place Program Framing
-        prog_input_frame = ttk.Frame(self.root, padding=10)
+        prog_input_frame = Frame(self.root, bg=self.secondary_color, padx=10, pady=10)
         prog_input_frame.grid(row=0, column=0, sticky="ns") # Sticks to the top left
 
         # Configure prog_input_frame grid weights
@@ -307,8 +335,13 @@ class App:
         self.program_text.grid(column=0, row=4, columnspan=2, padx=5, pady=5, sticky="nsew")
         scrollbar.grid(column=2, row=4, pady=5, sticky="ns")
 
+        return prog_input_frame
+
     def setup_main_frame(self):
-        '''Sets up the main frame of the program. Including the instruction frame, memory frame, and control frame'''
+        '''Sets up the main frame of the program. Including the instruction frame, memory frame, and control frame.
+        Returns:
+            ttk.Frame: The created main frame containing all program components.
+        '''
         main_frame = ttk.Frame(self.root, padding=10)
         main_frame.grid(row=0, column=1, sticky=NSEW) # Expands to fill the right
 
@@ -316,13 +349,19 @@ class App:
         main_frame.grid_rowconfigure(1, weight=1)  # Make memory frame expandable
         main_frame.grid_columnconfigure(0, weight=1)
         
-        self.setup_instruction_frame(main_frame)
-        self.setup_memory_frame(main_frame)
-        self.setup_control_frame(main_frame)
+        self.instruction_frame = self.setup_instruction_frame(main_frame)
+        self.memory_frame = self.setup_memory_frame(main_frame)
+        self.control_frame = self.setup_control_frame(main_frame)
 
+        return main_frame
 
     def setup_instruction_frame(self, main_frame):
-        '''Sets up the instruction frame for providing information to the user'''
+        '''Sets up the instruction frame for providing information to the user.
+        Args:
+            main_frame (ttk.Frame): The parent frame to place the instruction frame in.
+        Returns:
+            tk.Frame: The created instruction frame containing the instruction display.
+        '''
         # Declare and Place Text box for Instructions
         inst_frame = tk.Frame(main_frame, padx=10, pady=10)
         # Configure inst_frame to expand horizontally
@@ -335,8 +374,15 @@ class App:
         seperator = ttk.Separator(inst_frame, orient=HORIZONTAL)
         seperator.grid(row=1, column=0, columnspan=3, sticky="ew") # Add a separator
 
+        return inst_frame
+
     def setup_memory_frame(self, main_frame):
-        '''Sets up the memory frame, containing the the memory information. Ensuring the memory text resizes when the window changes.'''
+        '''Sets up the memory frame, containing the the memory information. Ensuring the memory text resizes when the window changes.
+        Args:
+            main_frame (ttk.Frame): The parent frame to place the memory frame in.
+        Returns:
+            tk.Frame: The created memory frame containing the memory display and CPU information.
+        '''
         # Declare CPU Info Frame, Status label and Memory Display text in Memory Frame
         memory_frame = tk.Frame(main_frame, padx=10, pady=10)
         memory_frame.grid(row=1, column=0, sticky="nsew")  # Make memory_frame expandable
@@ -344,7 +390,6 @@ class App:
         # Configure grid weights for memory_frame
         memory_frame.grid_rowconfigure(2, weight=1)  # Make the row with memory_text expandable
         memory_frame.grid_columnconfigure(0, weight=1)  # Allow the memory  to expand
-
 
         # Place CPU info labels at the top of the memory_frame
         memory_label = ttk.Label(memory_frame, text="Memory")
@@ -382,10 +427,17 @@ class App:
         self.memory_text.config(state=tk.DISABLED)
         self.memory_text.bind("<Configure>", self.adjust_memory_font_size) # Binds the adjust memory font size when window is changed
 
+        return memory_frame
+
     def setup_control_frame(self, main_frame):
-        '''Sets up the control frame for controlling the program'''
+        '''Sets up the control frame for controlling the program.
+        Args:
+            main_frame (ttk.Frame): The parent frame to place the control frame in.
+        Returns:
+            tk.Frame: The created control frame containing program control buttons and I/O.
+        '''
         # Declare and Place run, step, halt, reset buttons, and I/O text in Control Frame
-        control_frame = ttk.Frame(main_frame, padding=10)
+        control_frame = Frame(main_frame, bg=self.secondary_color, padx=10, pady=10)
         control_frame.grid_columnconfigure(2, weight=1)  # Allow the I/O to expand horizontally
 
         run_btn = ttk.Button(control_frame, text="Run", command=self.run_program, padding=5)
@@ -406,6 +458,7 @@ class App:
         self.io_label.grid(row=0, column=2, padx=5, pady=5, sticky="nw")
         self.io_text.grid(row=1, rowspan=3, column=2, padx=5, pady=5, sticky="ew")
 
+        return control_frame
 
     def load_file(self, file_path=None):
         '''Load a file into the program_text widget'''
@@ -637,15 +690,34 @@ class App:
         self.root.configure(bg=self.primary_color)
         
         # Program frame
-        for widget in self.root.winfo_children():
-            if isinstance(widget, ttk.Frame):
-                widget.configure(style='Custom.TFrame')
+        if hasattr(self, 'program_frame'):
+            self.program_frame.configure(bg=self.secondary_color)
         
         # Program text
-        self.program_text.configure(bg=self.primary_color, fg=self.primary_text_color)
+        self.program_text.configure(
+            bg=self.primary_color,
+            fg=self.primary_text_color
+        )
         
-        # Memory text
-        self.memory_text.configure(bg=self.primary_color, fg=self.primary_text_color)
+        # Memory frame and text
+        if hasattr(self, 'memory_frame'):
+            self.memory_frame.configure(bg=self.secondary_color)
+
+        if hasattr(self, 'instruction_frame'):
+            self.instruction_frame.configure(bg=self.secondary_color)
+
+        # Control frame
+        if hasattr(self, 'control_frame'):
+            self.control_frame.configure(bg=self.secondary_color)
+
+        # program frame
+        if hasattr(self, 'program_frame'):
+            self.program_frame.configure(bg=self.secondary_color)
+        
+        self.memory_text.configure(
+            bg=self.primary_color,
+            fg=self.primary_text_color
+        )
         
         # IO text
         self.io_text.configure(style='Custom.TEntry')
@@ -662,14 +734,15 @@ class App:
         # Create/update custom styles for ttk widgets
         style = ttk.Style()
         
-        # Frame style
-        style.configure('Custom.TFrame', background=self.primary_color)
-        
         # Button style
-        style.configure('TButton', background=self.secondary_color, foreground=self.secondary_text_color)
+        style.configure('TButton', 
+                       background=self.secondary_color,
+                       foreground=self.secondary_text_color)
         
         # Entry style
-        style.configure('Custom.TEntry', fieldbackground=self.primary_color, foreground=self.primary_text_color)
+        style.configure('Custom.TEntry', 
+                       fieldbackground=self.secondary_color,
+                       foreground=self.secondary_text_color)
         
         # Refresh UI
         self.root.update_idletasks()
