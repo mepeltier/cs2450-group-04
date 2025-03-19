@@ -93,7 +93,7 @@ class ColorChooser:
         '''Display the color chooser dialog'''
         self.dialog = Toplevel(self.parent.root)  # Use parent.root as the Tkinter parent
         self.dialog.title("Customize Colors")
-        self.dialog.geometry("400x250")  # Increased height to accommodate reset button
+        self.dialog.geometry("400x250")  
         self.dialog.resizable(False, False)
         self.dialog.transient(self.parent.root)
         self.dialog.grab_set()
@@ -246,12 +246,14 @@ class App:
         self.default_secondary_color = "#e0e0e0"  # Slightly darker gray for buttons/accents
         self.default_primary_text_color = "#000000"  # Black for main text
         self.default_secondary_text_color = "#505050"  # Dark gray for secondary text
+        self.default_darkened_color = "#d0d0d0"  # Darker gray for inactive frames
 
         # Set current colors to default
         self.primary_color = self.default_primary_color
         self.secondary_color = self.default_secondary_color
         self.primary_text_color = self.default_primary_text_color
         self.secondary_text_color = self.default_secondary_text_color
+        self.darkened_color = self.default_darkened_color
 
         self.setup_root()
         
@@ -274,6 +276,9 @@ class App:
         
         # Apply initial colors
         self.apply_colors()
+        
+        # Set initial frame states
+        self.highlight_program_frame()
         
         self.root.mainloop()
     
@@ -515,6 +520,8 @@ class App:
                 return
         self.status_label.config(text="Status: Ready")
         self.update_memory_text()
+        # Switch focus to memory frame after loading
+        self.highlight_memory_frame()
 
     def adjust_memory_font_size(self, event=None):
         '''Dynamically adjusts font size to fit text within memory_text widget with some padding.'''
@@ -604,6 +611,8 @@ class App:
             cont = False
 
         self.status_label.config(text="Status: Running")
+        # Switch focus to control frame when running
+        self.highlight_memory_frame()
             
         try:
             self.boot.run(self, cont)
@@ -656,6 +665,9 @@ class App:
         self.update_memory_text()
         self.status_label.config(text="Status: Reset")
 
+        # Highlight the program frame
+        self.highlight_program_frame()
+
     def instructions_window(self):
         '''Display the instructions set window'''
         instructions_window = tk.Toplevel(self.root)
@@ -703,6 +715,7 @@ class App:
         # Define frame styles
         self.style.configure('Primary.TFrame', background=self.primary_color)
         self.style.configure('Secondary.TFrame', background=self.secondary_color)
+        self.style.configure('Darkened.TFrame', background=self.darken_color(self.primary_color))
         
         # Define button style
         self.style.configure('TButton', 
@@ -726,6 +739,7 @@ class App:
         # Update all styles with current colors
         self.style.configure('Primary.TFrame', background=self.primary_color)
         self.style.configure('Secondary.TFrame', background=self.secondary_color)
+        self.style.configure('Darkened.TFrame', background=self.darken_color(self.primary_color))
         
         # Only keep the ttk styles we're using
         self.style.configure('TButton', 
@@ -788,4 +802,36 @@ class App:
         self.update_memory_text()
         # Refresh UI
         self.root.update_idletasks()
+
+    def highlight_program_frame(self):
+        '''Highlight the program frame and darken other frames'''
+        self.program_frame.configure(style='Primary.TFrame')
+        self.memory_frame.configure(style='Darkened.TFrame')
+        self.control_frame.configure(style='Darkened.TFrame')
+
+        self.update_memory_text()
+
+    def highlight_memory_frame(self):
+        '''Highlight the memory frame and darken other frames'''
+        self.program_frame.configure(style='Darkened.TFrame')
+        self.memory_frame.configure(style='Primary.TFrame')
+        self.control_frame.configure(style='Primary.TFrame')
+
+        self.update_memory_text()
+
+    def darken_color(self, color, factor=0.3):
+        '''Darken a hex color by a given factor'''
+        # Remove the '#' if present
+        color = color.lstrip('#')
+        
+        # Convert hex to RGB
+        rgb = tuple(int(color[i:i+2], 16) for i in (0, 2, 4))
+        
+        # Darken each component
+        darkened_rgb = tuple(int(c * factor) for c in rgb)
+        
+        # Convert back to hex
+        return '#{:02x}{:02x}{:02x}'.format(*darkened_rgb)
+
+
 
