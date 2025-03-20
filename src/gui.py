@@ -118,6 +118,7 @@ class App:
         load_file_btn = ttk.Button(prog_input_frame, text="Load File", command=self.load_file, padding=5)
         clear_btn = ttk.Button(prog_input_frame, text="Clear", command=self.clear_program, padding=5)
         load_mem_btn = ttk.Button(prog_input_frame, text="Load Into Memory", command=self.load_memory, padding=5)
+        save_prog_btn = ttk.Button(prog_input_frame, text="Save Program", command=self.save_file, padding=5)
         self.program_text = tk.Text(prog_input_frame, height=25, width=10)
         scrollbar = ttk.Scrollbar(prog_input_frame, orient=VERTICAL, command=self.program_text.yview)
         self.program_text.config(font=("Consolas", 25), yscrollcommand=scrollbar.set)  # Increase text font size and add scrollbar
@@ -126,6 +127,7 @@ class App:
         clear_btn.grid(column=1, row=0, padx=3, pady=3, sticky="ew")
         load_mem_btn.grid(column=0, row=2, columnspan=2, padx=3, pady=3, sticky="ew")
         self.program_text.grid(column=0, row=3, columnspan=2, padx=5, pady=5, sticky="nsew")
+        save_prog_btn.grid(column=0, row=4, columnspan=2, padx=5, pady=5, sticky="ew")
         scrollbar.grid(column=2, row=3, pady=5, sticky="ns")
 
     def setup_main_frame(self):
@@ -227,6 +229,18 @@ class App:
         self.io_label.grid(row=0, column=2, padx=5, pady=5, sticky="nw")
         self.io_text.grid(row=1, rowspan=3, column=2, padx=5, pady=5, sticky="ew")
 
+    def save_file(self, file_path=None):
+        '''Save the contents of the program_text widget to a file'''
+        if not file_path:
+            file_path = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[("Text files", "*.txt")])
+
+        try:
+            with open(file_path, "w") as file:
+                file.write(self.program_text.get("1.0", tk.END))
+        except Exception as e:
+            messagebox.showerror("Error", f"Error: {e}")
+            return
+        self.status_label.config(text="Status: File saved successfully")
 
     def load_file(self, file_path=None):
         '''Load a file into the program_text widget'''
