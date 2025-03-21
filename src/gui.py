@@ -543,7 +543,7 @@ class App:
         self.status_label.config(text="Status: Ready")
         self.update_memory_text()
         # Switch focus to memory frame after loading
-        self.highlight_memory_frame()
+        self.highlight_main_frame()
 
     def adjust_memory_font_size(self, event=None):
         '''Dynamically adjusts font size to fit text within memory_text widget with some padding.'''
@@ -634,7 +634,7 @@ class App:
 
         self.status_label.config(text="Status: Running")
         # Switch focus to control frame when running
-        self.highlight_memory_frame()
+        self.highlight_main_frame()
             
         try:
             self.boot.run(self, cont)
@@ -828,14 +828,16 @@ class App:
     def highlight_program_frame(self):
         '''Highlight the program frame and darken other frames'''
         self.program_frame.configure(style='Primary.TFrame')
+        self.instruction_frame.configure(style='Darkened.TFrame')
         self.memory_frame.configure(style='Darkened.TFrame')
         self.control_frame.configure(style='Darkened.TFrame')
 
         self.update_memory_text()
 
-    def highlight_memory_frame(self):
+    def highlight_main_frame(self):
         '''Highlight the memory frame and darken other frames'''
         self.program_frame.configure(style='Darkened.TFrame')
+        self.instruction_frame.configure(style='Primary.TFrame')
         self.memory_frame.configure(style='Primary.TFrame')
         self.control_frame.configure(style='Primary.TFrame')
 
