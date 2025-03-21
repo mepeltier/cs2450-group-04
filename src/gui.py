@@ -8,15 +8,14 @@ from tkinter import filedialog, messagebox, ttk, font, colorchooser
 import json
 import os
 
-        
 class ColoredText(tk.Text):
     '''Class to handle colored text from termcolor in the GUI'''
     def __init__(self, *args, **kwargs):
         '''Initialize the ColoredText class to inherit from the Text tkinter class'''
         super().__init__(*args, **kwargs)
-        self.tag_configure("secondary", foreground="#e0e0e0")  # Default secondary color
-        self.tag_configure("primary", foreground="#000000")    # Default primary color
-        self.tag_configure("center", justify="center")  # Left justification configuration
+        self.tag_configure("primary", foreground=COLOR["primary_text"])
+        self.tag_configure("secondary", foreground=COLOR["secondary_text"])
+        self.tag_configure("center", justify="center") 
 
     def insert_colored_text(self, text, color=None):
         '''Insert colored text into the text widget'''
@@ -232,6 +231,14 @@ class ColorChooser:
         self.primary_text_label.config(text=self.primary_text_color)
         self.secondary_text_label.config(text=self.secondary_text_color)
 
+# Default color scheme
+COLOR = {
+            "primary" : "#4C721D",
+            "secondary" : "#FFFFFF",
+            "primary_text" : "#000000",
+            "secondary_text" : "#505050",
+            "darkened_color" : "#d0d0d0"
+        }
 
 class App:
     '''GUI functionality'''
@@ -242,11 +249,11 @@ class App:
         self.cpu = boot.cpu
 
         # Initialize default colors
-        self.default_primary_color = "#f0f0f0"  # Light gray for backgrounds
-        self.default_secondary_color = "#e0e0e0"  # Slightly darker gray for buttons/accents
-        self.default_primary_text_color = "#000000"  # Black for main text
-        self.default_secondary_text_color = "#505050"  # Dark gray for secondary text
-        self.default_darkened_color = "#d0d0d0"  # Darker gray for inactive frames
+        self.default_primary_color = COLOR["primary"]  # Dark green for backgrounds
+        self.default_secondary_color = COLOR["secondary"]  # Slightly darker gray for buttons/accents
+        self.default_primary_text_color = COLOR["primary_text"]  # Black for main text
+        self.default_secondary_text_color = COLOR["secondary_text"]  # Dark gray for secondary text
+        self.default_darkened_color = COLOR["darkened_color"]  # Darker gray for inactive frames
 
         # Set current colors to default
         self.primary_color = self.default_primary_color
@@ -295,10 +302,10 @@ class App:
         '''Sets up the menu bar and its behavior'''
         menubar = Menu(self.root)
         filemenu = Menu(menubar, tearoff=0)
-        filemenu.add_command(label="Open", command=self.load_file)  # Add open file option
-        filemenu.add_command(label="Clear", command=self.clear_program)  # Add clear program option
-        filemenu.add_command(label="Exit", command=self.root.quit)  # Add exit option
-        menubar.add_cascade(label="File", menu=filemenu)  # Add file menu to menubar
+        filemenu.add_command(label="Open", command=self.load_file)
+        filemenu.add_command(label="Clear", command=self.clear_program)
+        filemenu.add_command(label="Exit", command=self.root.quit)
+        menubar.add_cascade(label="File", menu=filemenu)
 
         appearancemenu = Menu(menubar, tearoff=0)
         appearancemenu.add_command(label="Customize Colors", command=self.open_color_dialog)
@@ -322,38 +329,30 @@ class App:
         prog_input_frame.grid(row=0, column=0, sticky="ns") # Sticks to the top left
 
         # Configure prog_input_frame grid weights
-        prog_input_frame.grid_rowconfigure(4, weight=1)  # Make row with program_text expandable
+        prog_input_frame.grid_rowconfigure(2, weight=1)  # Make row with program_text expandable
         prog_input_frame.grid_columnconfigure((0, 1), weight=0)  # Make columns equal width
 
         # Declare and Place Program Input Frame, Scrollbar, buttons, and opcode textbox
         load_file_btn = ttk.Button(prog_input_frame, text="Load File", command=self.load_file, padding=5)
         clear_btn = ttk.Button(prog_input_frame, text="Clear", command=self.clear_program, padding=5)
-        
         load_mem_btn = ttk.Button(prog_input_frame, text="Load Into Memory", command=self.load_memory, padding=5)
-        save_prog_btn = ttk.Button(prog_input_frame, text="Save Program", command=self.save_file, padding=5)
-        self.program_text = tk.Text(prog_input_frame, height=25, width=10)
+        self.program_text = tk.Text(prog_input_frame, width=10)
         scrollbar = ttk.Scrollbar(prog_input_frame, orient=VERTICAL, command=self.program_text.yview)
-        self.program_text.config(font=("Consolas", 25), yscrollcommand=scrollbar.set)  # Increase text font size and add scrollbar
+        # Add a small separator
+        separator = ttk.Separator(prog_input_frame, orient=HORIZONTAL)
+        save_prog_btn = ttk.Button(prog_input_frame, text="Save Program", command=self.save_file, padding=5)
 
         load_file_btn.grid(column=0, row=0, padx=3, pady=3, sticky="ew")
         clear_btn.grid(column=1, row=0, padx=3, pady=3, sticky="ew")
-
-        load_mem_btn.grid(column=0, row=2, columnspan=2, padx=3, pady=3, sticky="ew")
-
-        
-        # Add a small separator
-        separator = ttk.Separator(prog_input_frame, orient=HORIZONTAL)
+        load_mem_btn.grid(column=0, row=1, columnspan=2, padx=3, pady=3, sticky="ew")
+        self.program_text.grid(column=0, row=2, columnspan=2, padx=5, pady=5, sticky="new")
+        scrollbar.grid(column=1, row=2, pady=5, sticky="nse")
         separator.grid(column=0, row=3, columnspan=2, padx=3, pady=5, sticky="ew")
-        
-        self.program_text.grid(column=0, row=4, columnspan=2, padx=5, pady=5, sticky="nsew")
-        scrollbar.grid(column=2, row=4, pady=5, sticky="ns")
+        save_prog_btn.grid(column=0, row=4, columnspan=2, padx=5, pady=5, sticky="ew")
+
+        self.program_text.config(font=("Consolas", 25), yscrollcommand=scrollbar.set)  # Increase text font size and add scrollbar
 
         return prog_input_frame
-      
-#         self.program_text.grid(column=0, row=3, columnspan=2, padx=5, pady=5, sticky="nsew")
-#         save_prog_btn.grid(column=0, row=4, columnspan=2, padx=5, pady=5, sticky="ew")
-#         scrollbar.grid(column=2, row=3, pady=5, sticky="ns")
-
 
     def setup_main_frame(self):
         '''Sets up the main frame of the program. Including the instruction frame, memory frame, and control frame.
@@ -388,7 +387,7 @@ class App:
         # Use regular tk.Label for direct color control
         self.instructions = tk.Label(inst_frame, text="Instruction", 
                                    font=("Consolas", 11), anchor="center",
-                                   bg=self.secondary_color, fg=self.primary_text_color)
+                                   bg=self.secondary_color, fg=self.primary_text_color, wraplength=700)
         inst_frame.grid(row=0, column=0, sticky="new")  # Stick to top
         self.instructions.grid(row=0, column=0, sticky="ew", ipady=24)  # Center the label
 
@@ -413,7 +412,7 @@ class App:
         memory_frame.grid_columnconfigure(0, weight=1)  # Allow the memory to expand
 
         # Place CPU info labels at the top of the memory_frame using regular labels
-        self.memory_label = tk.Label(memory_frame, text="Memory", bg=self.secondary_color, fg=self.secondary_text_color, font=("Consolas", 11))
+        self.memory_label = tk.Label(memory_frame, text="Memory", bg=self.primary_color, fg=self.secondary_text_color, font=("Consolas", 15, "bold"))
         boldseperator = ttk.Separator(memory_frame, orient=VERTICAL)
         self.pc_frame = tk.Label(memory_frame, text="PC:", bg=self.secondary_color, fg=self.secondary_text_color)
         self.pc_label = tk.Label(memory_frame, text="00", bg=self.secondary_color, fg=self.secondary_text_color)
@@ -522,28 +521,30 @@ class App:
 
     def load_memory(self):
         '''Load the program_text widget contents into memory'''
-        text = self.program_text.get("1.0", tk.END).splitlines()
-        self.mem.clear()
-        for addr, instruction in enumerate(text):
-            if instruction.strip() == "":
-                addr -= 1
-                continue
-            elif instruction.strip().__len__() > 5:
-                self.mem.write(addr, instruction[0:5])
-                continue
+        # Execute if program_text widget is not empty
+        if (self.program_text.get("1.0", tk.END).strip()):
+            text = self.program_text.get("1.0", tk.END).splitlines()
+            self.mem.clear()
+            for addr, instruction in enumerate(text):
+                if instruction.strip() == "":
+                    addr -= 1
+                    continue
+                elif instruction.strip().__len__() > 5:
+                    self.mem.write(addr, instruction[0:5])
+                    continue
 
-            try:
-                self.mem.write(addr, instruction.strip())
-            except IndexError:
-                messagebox.showerror("Error", f"Invalid address: {addr}")
-                return
-            except ValueError:
-                messagebox.showerror("Error", f"Invalid instruction: {instruction}")
-                return
-        self.status_label.config(text="Status: Ready")
-        self.update_memory_text()
-        # Switch focus to memory frame after loading
-        self.highlight_main_frame()
+                try:
+                    self.mem.write(addr, instruction.strip())
+                except IndexError:
+                    messagebox.showerror("Error", f"Invalid address: {addr}")
+                    return
+                except ValueError:
+                    messagebox.showerror("Error", f"Invalid instruction: {instruction}")
+                    return
+            self.status_label.config(text="Status: Ready")
+            self.update_memory_text()
+            # Switch focus to memory frame after loading
+            self.highlight_main_frame()
 
     def adjust_memory_font_size(self, event=None):
         '''Dynamically adjusts font size to fit text within memory_text widget with some padding.'''
@@ -633,7 +634,7 @@ class App:
             cont = False
 
         self.status_label.config(text="Status: Running")
-        # Switch focus to control frame when running
+        # Switch focus to main frame when running
         self.highlight_main_frame()
             
         try:
@@ -752,7 +753,7 @@ class App:
         
         # Define disabled entry style
         self.style.map('IO.TEntry',
-                      fieldbackground=[('disabled', self.primary_color)],
+                      fieldbackground=[('disabled', self.secondary_color)],
                       foreground=[('disabled', self.primary_text_color)],
                       background=[('disabled', self.primary_color)])
 
@@ -774,7 +775,7 @@ class App:
         
         # Update disabled state colors
         self.style.map('IO.TEntry',
-                      fieldbackground=[('disabled', self.primary_color)],
+                      fieldbackground=[('disabled', self.secondary_color)],
                       foreground=[('disabled', self.primary_text_color)],
                       background=[('disabled', self.primary_color)])
         
@@ -784,7 +785,7 @@ class App:
         # Regular Text widgets (not ttk)
         self.program_text.configure(
             bg=self.secondary_color,
-            fg=self.primary_text_color
+            fg=self.primary_text_color,
         )
         
         self.memory_text.configure(
@@ -832,6 +833,12 @@ class App:
         self.memory_frame.configure(style='Darkened.TFrame')
         self.control_frame.configure(style='Darkened.TFrame')
 
+        # Disable control frame buttons, enable program frame buttons and program_text
+        for frame, state in [(self.program_frame, tk.NORMAL), (self.control_frame, tk.DISABLED)]:
+            for child in frame.winfo_children():
+                if child.winfo_class() in ('TButton', 'Text', 'scrollbar'):
+                    child.configure(state=state)
+
         self.update_memory_text()
 
     def highlight_main_frame(self):
@@ -841,9 +848,15 @@ class App:
         self.memory_frame.configure(style='Primary.TFrame')
         self.control_frame.configure(style='Primary.TFrame')
 
+        # Enable control frame buttons, disable program frame buttons and program_text
+        for frame, state in [(self.program_frame, tk.DISABLED), (self.control_frame, tk.NORMAL)]:
+            for child in frame.winfo_children():
+                if child.winfo_class() in ('TButton', 'Text', 'scrollbar'):
+                    child.configure(state=state)
+
         self.update_memory_text()
 
-    def darken_color(self, color, factor=0.3):
+    def darken_color(self, color, factor=0.4):
         '''Darken a hex color by a given factor'''
         # Remove the '#' if present
         color = color.lstrip('#')

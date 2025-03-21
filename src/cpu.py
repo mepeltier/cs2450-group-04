@@ -291,7 +291,7 @@ class CPU:
         gui.io_text.config(state=tk.NORMAL)
         gui.io_text.delete("0", "end")
         gui.io_text.bind("<Return>", read_input)
-        gui.io_label.configure(text="Read a 4-digit signed instruction: ")
+        gui.io_label.configure(text="Read a 4-digit signed instruction: (Press enter to submit)")
         gui.input = tk.StringVar()
         gui.root.wait_variable(gui.input)
         gui.io_text.delete("0", "end")
