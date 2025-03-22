@@ -529,9 +529,6 @@ class App:
             file_path = filedialog.askopenfilename(defaultextension=".txt", filetypes=[("Text files", "*.txt")])
 
         self.program_text.delete("1.0", tk.END)
-
-        if self.program_text.get("1.0", tk.END).strip() != "":
-            self.program_text.insert(tk.END, "\n")
         
         try:
             with open(file_path, "r") as file:
@@ -540,10 +537,10 @@ class App:
                 lines = text.split("\n")
                 data = ""
 
-                for line in lines:
-                    data += line.split()[0]
-                    data += "\n"    
-                data.strip()       
+                for index, line in enumerate(lines):
+                    data += line.split()[0]  
+                    if index != len(lines)-1:
+                        data += "\n"                
                 
                 self.program_text.insert(tk.END, data)
 
@@ -566,22 +563,22 @@ class App:
         if (self.program_text.get("1.0", tk.END).strip()):
             text = self.program_text.get("1.0", tk.END).splitlines()
             self.mem.clear()
-            for addr, instruction in enumerate(text):
-                if instruction.strip() == "":
-                    addr -= 1
-                    continue
-                elif instruction.strip().__len__() > 5:
-                    self.mem.write(addr, instruction[0:5])
-                    continue
-
-                try:
+            try:
+                for addr, instruction in enumerate(text):                
+                    if instruction.strip() == "":
+                        raise ValueError("No data at line,  error with file input")
+                    elif instruction.strip().__len__() > 5:
+                        raise ValueError("Data exceeded valid length, error with file input")
+                        self.mem.write(addr, instruction[0:5])
+                        continue
+                    
                     self.mem.write(addr, instruction.strip())
-                except IndexError:
-                    messagebox.showerror("Error", f"Invalid address: {addr}")
-                    return
-                except ValueError:
-                    messagebox.showerror("Error", f"Invalid instruction: {instruction}")
-                    return
+            except IndexError:
+                messagebox.showerror("Error", f"Invalid address: {addr}")
+                return
+            except ValueError:
+                messagebox.showerror("Error", f"Invalid instruction: {instruction}")
+                return
             self.status_label.config(text="Status: Ready")
             self.update_memory_text()
             # Switch focus to memory frame after loading
