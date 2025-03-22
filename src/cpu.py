@@ -314,6 +314,7 @@ class CPU:
         self.read_from_memory(operand)
         gui.io_text.config(state=tk.NORMAL)
         gui.io_label.configure(text="Write Output:")
+        gui.io_text.delete(0, tk.END)
         gui.io_text.insert(tk.END, self.memory.int_to_word(self.register))
 
     def op_LOAD(self, operand):
