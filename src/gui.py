@@ -533,7 +533,7 @@ class App:
 
         try:
             with open(file_path, "w") as file:
-                file.write(self.program_text.get("1.0", tk.END))
+                file.write(self.program_text.get("1.0", tk.END).rstrip())
         except Exception as e:
             messagebox.showerror("Error", f"Error: {e}")
             return
