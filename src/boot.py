@@ -19,7 +19,17 @@ class Bootstrapper:
         self.memory = Memory()
         self.cpu = CPU(self.memory)
 
-    def load_program(self, file_name: str):
+    def load_program(self, program):
+        try:
+            for addr, instruction in enumerate(program):                
+                self.memory.write(addr, instruction.split()[0].rstrip())
+        except IndexError:
+            raise IndexError(addr)
+        except ValueError:
+            raise ValueError(instruction)
+                               
+
+    def load_from_file(self, file_name: str):
         """Load a program into memory starting at address 0.
 
         Parameters:
@@ -31,31 +41,11 @@ class Bootstrapper:
         with open(file_name, "r") as file:
             program: List[str] = []
 
-
             for line in file.readlines():
                 words = line.split()
                 program.append(words[0])
 
-            for addr, instruction in enumerate(program):
-                try:
-
-                    self.memory.write(addr, instruction.split()[0].rstrip())
-
-                except IndexError as error:
-                    LOGGER.error(
-                        "Invalid index when loading program: \n%s", error.__str__()
-                    )
-                    return
-
-                except ValueError as error:
-                    LOGGER.error(
-                        "Invalid instruction in file: %s\n%s\n\n"
-                        "Zeroing out register %s",
-                        addr,
-                        instruction,
-                        error.__str__(),
-                    )
-                    self.memory.write(addr, "+0000")
+            self.load_program(program)
 
     def run(self, gui, cont=False):
         """Run the CPU."""

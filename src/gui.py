@@ -563,21 +563,15 @@ class App:
         if (self.program_text.get("1.0", tk.END).strip()):
             text = self.program_text.get("1.0", tk.END).splitlines()
             self.mem.clear()
+
             try:
-                for addr, instruction in enumerate(text):                
-                    if instruction.strip() == "":
-                        raise ValueError("No data at line,  error with file input")
-                    elif instruction.strip().__len__() > 5:
-                        raise ValueError("Data exceeded valid length, error with file input")
-                        self.mem.write(addr, instruction[0:5])
-                        continue
-                    
-                    self.mem.write(addr, instruction.strip())
-            except IndexError:
-                messagebox.showerror("Error", f"Invalid address: {addr}")
+                self.boot.load_program(text)                
+
+            except IndexError as e:
+                messagebox.showerror("Error", f"Invalid address: {str(e)}")
                 return
-            except ValueError:
-                messagebox.showerror("Error", f"Invalid instruction: {instruction}")
+            except ValueError as e:
+                messagebox.showerror("Error", f"Invalid instruction: {str(e)}")
                 return
             self.status_label.config(text="Status: Ready")
             self.update_memory_text()

@@ -12,7 +12,7 @@ class TestCPU(unittest.TestCase):
     def setUp(self):
         boot = Bootstrapper()
         self.cpu = boot.cpu
-        boot.load_program("tests/cpu_test.txt")
+        boot.load_from_file("tests/cpu_test.txt")
 
     def tearDown(self):
         pass
