@@ -378,8 +378,25 @@ class App:
         save_prog_btn.grid(column=0, row=4, columnspan=2, padx=5, pady=5, sticky="ew")
 
         self.program_text.config(yscrollcommand=scrollbar.set)  # Decreased font size per todos, fixed scrollbar to be inside the textbox
+    
+        self.program_text.last_valid_text = ""
+        self.program_text.bind("<KeyRelease>", self.check_text_length)
+    
+        return prog_input_frame 
+      
+    def check_text_length(self, event):
+        current_text = self.program_text.get("1.0", "end-1c")  # Get text without the trailing newline
+        current_text_lines = current_text.split("\n")
 
-        return prog_input_frame
+        if len(current_text_lines) >= 100:
+            self.program_text.delete("1.0", tk.END)
+            self.program_text.insert("1.0", self.program_text.last_valid_text)
+            messagebox.showerror("Error", f"Maximum Length Exceeded\nLen:{len(current_text_lines)}")
+        else:
+            self.program_text.last_valid_text = current_text
+
+    
+
 
     def setup_main_frame(self):
         '''Sets up the main frame of the program. Including the instruction frame, memory frame, and control frame.
@@ -529,6 +546,7 @@ class App:
             file_path = filedialog.askopenfilename(defaultextension=".txt", filetypes=[("Text files", "*.txt")])
 
         self.program_text.delete("1.0", tk.END)
+        self.program_text.last_valid_text = ""
         
         try:
             with open(file_path, "r") as file:
@@ -543,6 +561,7 @@ class App:
                         data += "\n"                
                 
                 self.program_text.insert(tk.END, data)
+                self.program_text.last_valid_text = self.program_text.get("1.0", "end-1c")
 
         except FileNotFoundError as e:
             messagebox.showerror("Error", f"File not found: {file_path}")
