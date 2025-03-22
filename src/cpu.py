@@ -104,9 +104,13 @@ class CPU:
                 gui.update_memory_text(self.print_memory())
 
             try:
+                # DO NOT CHANGE UNLESS YOU KNOW EXPLICITLY WHAT IT WILL DO
+                # I had to spend almost two hours fixing a bug because someone changes the order of these two line..
+                # Pointer MUST be updated first, because otherwise it will jump and THEN skip to the next instruction......
+                
                 self.register = Memory.word_to_int(self.memory.read(self.pointer))
+                self.pointer += 1 
                 self.operation(self.register, gui)
-                self.pointer += 1
 
             except Halt:
                 self.halted = True
@@ -312,10 +316,12 @@ class CPU:
         Return - None
         """
         self.read_from_memory(operand)
-        gui.io_text.config(state=tk.NORMAL)
-        gui.io_label.configure(text="Write Output:")
-        gui.io_text.delete(0, tk.END)
-        gui.io_text.insert(tk.END, self.memory.int_to_word(self.register))
+
+        if gui is not None:
+            gui.io_text.config(state=tk.NORMAL)
+            gui.io_label.configure(text="Write Output:")
+            gui.io_text.delete(0, tk.END)
+            gui.io_text.insert(tk.END, self.memory.int_to_word(self.register))
 
     def op_LOAD(self, operand):
         """Mini Method used to load a word from memory at the operand location
@@ -434,3 +440,23 @@ class CPU:
         Return - None
         """
         raise Halt
+
+
+def main():
+    from boot import Bootstrapper
+    boot = Bootstrapper()
+
+    boot.load_from_file("tests/cpu_test.txt")
+    boot.run(gui=None)
+    with open("tests/cpu_test_final.txt") as file:
+        final_data = file.readlines()
+
+        boot.cpu.read_from_memory(85)
+        assert 1875 == boot.cpu.register
+
+        for i, word in enumerate(final_data):
+            boot.cpu.read_from_memory(i)
+            assert Memory.word_to_int(word.strip()) == boot.cpu.register
+
+if __name__ == "__main__":
+    main()
