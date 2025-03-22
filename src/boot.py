@@ -31,8 +31,10 @@ class Bootstrapper:
         with open(file_name, "r") as file:
             program: List[str] = []
 
+
             for line in file.readlines():
-                program.append(line)
+                words = line.split()
+                program.append(words[0])
 
             for addr, instruction in enumerate(program):
                 try:

@@ -528,18 +528,32 @@ class App:
         if not file_path:
             file_path = filedialog.askopenfilename(defaultextension=".txt", filetypes=[("Text files", "*.txt")])
 
+        self.program_text.delete("1.0", tk.END)
+
         if self.program_text.get("1.0", tk.END).strip() != "":
             self.program_text.insert(tk.END, "\n")
-
+        
         try:
             with open(file_path, "r") as file:
-                self.program_text.insert(tk.END, file.read())
+                text = file.read()
+
+                lines = text.split("\n")
+                data = ""
+
+                for line in lines:
+                    data += line.split()[0]
+                    data += "\n"    
+                data.strip()       
+                
+                self.program_text.insert(tk.END, data)
+
         except FileNotFoundError as e:
             messagebox.showerror("Error", f"File not found: {file_path}")
             return
         except Exception as e:
             messagebox.showerror("Error", f"Error: {e}")
-            return
+            return      
+        
         self.status_label.config(text="Status: Ready")
     
     def clear_program(self):
