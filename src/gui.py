@@ -391,7 +391,7 @@ class App:
         if len(current_text_lines) >= 100:
             self.program_text.delete("1.0", tk.END)
             self.program_text.insert("1.0", self.program_text.last_valid_text)
-            messagebox.showerror("Error", f"Maximum Length Exceeded\nLen:{len(current_text_lines)}")
+            messagebox.showerror("Error", f"Maximum Length Exceeded\nLen:{len(current_text_lines+1)}")
         else:
             self.program_text.last_valid_text = current_text
 
