@@ -8,15 +8,14 @@ from tkinter import filedialog, messagebox, ttk, font, colorchooser
 import json
 import os
 
-        
 class ColoredText(tk.Text):
     '''Class to handle colored text from termcolor in the GUI'''
     def __init__(self, *args, **kwargs):
         '''Initialize the ColoredText class to inherit from the Text tkinter class'''
         super().__init__(*args, **kwargs)
-        self.tag_configure("secondary", foreground="#e0e0e0")  # Default secondary color
-        self.tag_configure("primary", foreground="#000000")    # Default primary color
-        self.tag_configure("center", justify="center")  # Left justification configuration
+        self.tag_configure("primary", foreground=COLOR["primary_text"])
+        self.tag_configure("secondary", foreground=COLOR["secondary_text"])
+        self.tag_configure("center", justify="center") 
 
     def insert_colored_text(self, text, color=None):
         '''Insert colored text into the text widget'''
@@ -67,6 +66,7 @@ class ColorChooser:
         self.secondary_color = parent.secondary_color
         self.primary_text_color = parent.primary_text_color
         self.secondary_text_color = parent.secondary_text_color
+        self.pc_text_color = parent.pc_text_color
         
     def adjust_color_for_hover(self, color, darken=True):
         '''Adjust color brightness for hover effect'''
@@ -155,6 +155,18 @@ class ColorChooser:
         
         self.secondary_text_label = Label(main_frame, text=self.secondary_text_color)
         self.secondary_text_label.grid(row=3, column=2, sticky=W)
+
+        Label(main_frame, text="PC Text Color:", anchor=W).grid(row=4, column=0, sticky=W, pady=5)
+        self.pc_text_btn = Frame(main_frame, width=50, height=25,
+                                      relief=RAISED, borderwidth=2)
+        self.pc_text_btn.grid(row=4, column=1, padx=10)
+        self.pc_text_btn.bind('<Button-1>', lambda e: self.choose_color("pc_text"))
+        self.pc_text_btn.bind('<Enter>', lambda e: self.on_enter(e, self.pc_text_btn, self.pc_text_color))
+        self.pc_text_btn.bind('<Leave>', lambda e: self.on_leave(e, self.pc_text_btn, self.pc_text_color))
+        self.pc_text_btn.grid_propagate(False)
+        
+        self.pc_text_label = Label(main_frame, text=self.pc_text_color)
+        self.pc_text_label.grid(row=4, column=2, sticky=W)
         
         # Configure color displays
         self.update_button_colors()
@@ -187,7 +199,7 @@ class ColorChooser:
     
     def update_button_colors(self):
         '''Update all color display frames'''
-        for color_type in ['primary', 'secondary', 'primary_text', 'secondary_text']:
+        for color_type in ['primary', 'secondary', 'primary_text', 'secondary_text', 'pc_text']:
             color = getattr(self, f"{color_type}_color")
             frame = getattr(self, f"{color_type}_btn")
             frame.configure(bg=color)
@@ -210,6 +222,7 @@ class ColorChooser:
         self.parent.secondary_color = self.secondary_color
         self.parent.primary_text_color = self.primary_text_color
         self.parent.secondary_text_color = self.secondary_text_color
+        self.parent.pc_text_color = self.pc_text_color
         
         # Apply colors to UI
         self.parent.apply_colors()
@@ -222,6 +235,7 @@ class ColorChooser:
         self.secondary_color = self.parent.default_secondary_color
         self.primary_text_color = self.parent.default_primary_text_color
         self.secondary_text_color = self.parent.default_secondary_text_color
+        self.pc_text_color = self.parent.default_pc_text_color
         
         # Update color displays
         self.update_button_colors()
@@ -231,7 +245,24 @@ class ColorChooser:
         self.secondary_label.config(text=self.secondary_color)
         self.primary_text_label.config(text=self.primary_text_color)
         self.secondary_text_label.config(text=self.secondary_text_color)
+        self.pc_text_label.config(text=self.pc_text_color)
 
+# Default color scheme
+COLOR = {
+            "primary" : "#4C721D",
+            "secondary" : "#FFFFFF",
+            "primary_text" : "#000000",
+            "secondary_text" : "#505050",
+            "darkened_color" : "#d0d0d0",
+            "pc" : "#008000"
+        }
+
+# Default font scheme
+FONT = {
+            "header" : ("Consolas", 21, "bold"),
+            "primary" : ("Consolas", 18),
+            "secondary" : ("Consolas", 14),
+}
 
 class App:
     '''GUI functionality'''
@@ -242,18 +273,21 @@ class App:
         self.cpu = boot.cpu
 
         # Initialize default colors
-        self.default_primary_color = "#f0f0f0"  # Light gray for backgrounds
-        self.default_secondary_color = "#e0e0e0"  # Slightly darker gray for buttons/accents
-        self.default_primary_text_color = "#000000"  # Black for main text
-        self.default_secondary_text_color = "#505050"  # Dark gray for secondary text
-        self.default_darkened_color = "#d0d0d0"  # Darker gray for inactive frames
-
+        self.default_primary_color = COLOR["primary"]  # Dark green for backgrounds
+        self.default_secondary_color = COLOR["secondary"]  # White accent
+        self.default_primary_text_color = COLOR["primary_text"]  # Black for main text
+        self.default_secondary_text_color = COLOR["secondary_text"]  # Dark gray for secondary text
+        self.default_pc_text_color = COLOR["pc"]  # Green for PC text
+        self.default_darkened_color = COLOR["darkened_color"]  # Darker gray for inactive frames
+        
         # Set current colors to default
         self.primary_color = self.default_primary_color
         self.secondary_color = self.default_secondary_color
         self.primary_text_color = self.default_primary_text_color
         self.secondary_text_color = self.default_secondary_text_color
+        self.pc_text_color = self.default_pc_text_color
         self.darkened_color = self.default_darkened_color
+        
 
         self.setup_root()
         
@@ -286,8 +320,8 @@ class App:
         '''Sets up the root behavior of the window'''
         self.root = tk.Tk()
         self.root.title("UVSim - BasicML Simulator")
-        self.root.geometry('960x552')
-        self.root.minsize(960, 552)
+        self.root.geometry('1007x600')
+        self.root.minsize(1007, 600)
         self.root.iconbitmap('gui/cpu.ico')
         
     
@@ -295,10 +329,10 @@ class App:
         '''Sets up the menu bar and its behavior'''
         menubar = Menu(self.root)
         filemenu = Menu(menubar, tearoff=0)
-        filemenu.add_command(label="Open", command=self.load_file)  # Add open file option
-        filemenu.add_command(label="Clear", command=self.clear_program)  # Add clear program option
-        filemenu.add_command(label="Exit", command=self.root.quit)  # Add exit option
-        menubar.add_cascade(label="File", menu=filemenu)  # Add file menu to menubar
+        filemenu.add_command(label="Open", command=self.load_file)
+        filemenu.add_command(label="Clear", command=self.clear_program)
+        filemenu.add_command(label="Exit", command=self.root.quit)
+        menubar.add_cascade(label="File", menu=filemenu)
 
         appearancemenu = Menu(menubar, tearoff=0)
         appearancemenu.add_command(label="Customize Colors", command=self.open_color_dialog)
@@ -322,38 +356,30 @@ class App:
         prog_input_frame.grid(row=0, column=0, sticky="ns") # Sticks to the top left
 
         # Configure prog_input_frame grid weights
-        prog_input_frame.grid_rowconfigure(4, weight=1)  # Make row with program_text expandable
+        prog_input_frame.grid_rowconfigure(2, weight=1)  # Make row with program_text expandable
         prog_input_frame.grid_columnconfigure((0, 1), weight=0)  # Make columns equal width
 
         # Declare and Place Program Input Frame, Scrollbar, buttons, and opcode textbox
         load_file_btn = ttk.Button(prog_input_frame, text="Load File", command=self.load_file, padding=5)
         clear_btn = ttk.Button(prog_input_frame, text="Clear", command=self.clear_program, padding=5)
-        
         load_mem_btn = ttk.Button(prog_input_frame, text="Load Into Memory", command=self.load_memory, padding=5)
-        save_prog_btn = ttk.Button(prog_input_frame, text="Save Program", command=self.save_file, padding=5)
-        self.program_text = tk.Text(prog_input_frame, height=25, width=10)
+        self.program_text = tk.Text(prog_input_frame, width=10, font=FONT["primary"], wrap=NONE)
         scrollbar = ttk.Scrollbar(prog_input_frame, orient=VERTICAL, command=self.program_text.yview)
-        self.program_text.config(font=("Consolas", 25), yscrollcommand=scrollbar.set)  # Increase text font size and add scrollbar
+        # Add a small separator
+        separator = ttk.Separator(prog_input_frame, orient=HORIZONTAL)
+        save_prog_btn = ttk.Button(prog_input_frame, text="Save Program", command=self.save_file, padding=5)
 
         load_file_btn.grid(column=0, row=0, padx=3, pady=3, sticky="ew")
         clear_btn.grid(column=1, row=0, padx=3, pady=3, sticky="ew")
-
-        load_mem_btn.grid(column=0, row=2, columnspan=2, padx=3, pady=3, sticky="ew")
-
-        
-        # Add a small separator
-        separator = ttk.Separator(prog_input_frame, orient=HORIZONTAL)
+        load_mem_btn.grid(column=0, row=1, columnspan=2, padx=3, pady=3, sticky="ew")
+        self.program_text.grid(column=0, row=2, columnspan=2, padx=5, pady=5, sticky="nsew")
+        scrollbar.grid(column=1, row=2, pady=5, sticky="nse")
         separator.grid(column=0, row=3, columnspan=2, padx=3, pady=5, sticky="ew")
-        
-        self.program_text.grid(column=0, row=4, columnspan=2, padx=5, pady=5, sticky="nsew")
-        scrollbar.grid(column=2, row=4, pady=5, sticky="ns")
+        save_prog_btn.grid(column=0, row=4, columnspan=2, padx=5, pady=5, sticky="ew")
+
+        self.program_text.config(yscrollcommand=scrollbar.set)  # Decreased font size per todos, fixed scrollbar to be inside the textbox
 
         return prog_input_frame
-      
-#         self.program_text.grid(column=0, row=3, columnspan=2, padx=5, pady=5, sticky="nsew")
-#         save_prog_btn.grid(column=0, row=4, columnspan=2, padx=5, pady=5, sticky="ew")
-#         scrollbar.grid(column=2, row=3, pady=5, sticky="ns")
-
 
     def setup_main_frame(self):
         '''Sets up the main frame of the program. Including the instruction frame, memory frame, and control frame.
@@ -387,13 +413,14 @@ class App:
 
         # Use regular tk.Label for direct color control
         self.instructions = tk.Label(inst_frame, text="Instruction", 
-                                   font=("Consolas", 11), anchor="center",
-                                   bg=self.secondary_color, fg=self.primary_text_color)
+                                   font=FONT["secondary"], anchor="center",
+                                   bg=self.secondary_color, fg=self.primary_text_color, 
+                                   wraplength=700, width=100, height=2) # Ensure instruction window doesn't resize when it is updated
         inst_frame.grid(row=0, column=0, sticky="new")  # Stick to top
-        self.instructions.grid(row=0, column=0, sticky="ew", ipady=24)  # Center the label
+        self.instructions.grid(row=0, column=0, sticky="ew", ipady=25)  # Center the label
 
         seperator = ttk.Separator(inst_frame, orient=HORIZONTAL)
-        seperator.grid(row=1, column=0, columnspan=3, sticky="ew") # Add a separator
+        seperator.grid(row=1, column=0, sticky="ew", pady=(10, 0)) # Add a separator, ensure padding is set for top only to seperate it from the label
 
         return inst_frame
 
@@ -413,29 +440,29 @@ class App:
         memory_frame.grid_columnconfigure(0, weight=1)  # Allow the memory to expand
 
         # Place CPU info labels at the top of the memory_frame using regular labels
-        self.memory_label = tk.Label(memory_frame, text="Memory", bg=self.secondary_color, fg=self.secondary_text_color, font=("Consolas", 11))
+        self.memory_label = tk.Label(memory_frame, text="Memory", bg=self.primary_color, fg=self.primary_text_color, font=FONT["header"], padx=5)
         boldseperator = ttk.Separator(memory_frame, orient=VERTICAL)
-        self.pc_frame = tk.Label(memory_frame, text="PC:", bg=self.secondary_color, fg=self.secondary_text_color)
-        self.pc_label = tk.Label(memory_frame, text="00", bg=self.secondary_color, fg=self.secondary_text_color)
+        self.pc_frame = tk.Label(memory_frame, text="PC:", bg=self.secondary_color, fg=self.secondary_text_color, font=FONT["secondary"])
+        self.pc_label = tk.Label(memory_frame, text="00", bg=self.secondary_color, fg=self.secondary_text_color, font=FONT["secondary"])
         seperator1 = ttk.Separator(memory_frame, orient=VERTICAL)
-        self.acc_frame = tk.Label(memory_frame, text="Accumulator:", bg=self.secondary_color, fg=self.secondary_text_color)
-        self.acc_label = tk.Label(memory_frame, text="+0000", bg=self.secondary_color, fg=self.secondary_text_color)
+        self.acc_frame = tk.Label(memory_frame, text="Accumulator:", bg=self.secondary_color, fg=self.secondary_text_color, font=FONT["secondary"])
+        self.acc_label = tk.Label(memory_frame, text="+0000", bg=self.secondary_color, fg=self.secondary_text_color, font=FONT["secondary"])
         seperator2 = ttk.Separator(memory_frame, orient=VERTICAL)
-        self.status_label = tk.Label(memory_frame, text="Status: Ready", bg=self.secondary_color, fg=self.secondary_text_color, relief=tk.SUNKEN, anchor=tk.W)
+        self.status_label = tk.Label(memory_frame, text="Status: Ready", bg=self.secondary_color, fg=self.secondary_text_color, relief=tk.SUNKEN, anchor=tk.W, font=FONT["secondary"])
         boldseperator1 = ttk.Separator(memory_frame, orient=HORIZONTAL)
-        self.memory_text = ColoredText(memory_frame, height=11, width=64, font=("Courier", 12), wrap=NONE, state=tk.DISABLED)
+        self.memory_text = ColoredText(memory_frame, height=11, width=64, font=FONT["secondary"], wrap=NONE, state=tk.DISABLED)
         self.memory_text.tag_configure("center", justify="center")
         
-        # Place Memory Frame and its components
+        # Place Memory Frame and its components, ensuring they expand to fill the space
         self.memory_label.grid(row=0, column=0, sticky=W)
-        boldseperator.grid(row=0, column=1, sticky=NS)
-        self.pc_frame.grid(row=0, column=2)
-        self.pc_label.grid(row=0, column=3)
+        boldseperator.grid(row=0, column=1, sticky=S)
+        self.pc_frame.grid(row=0, column=2, sticky=NS)
+        self.pc_label.grid(row=0, column=3, sticky=NS)
         seperator1.grid(row=0, column=4, sticky=NS)
-        self.acc_frame.grid(row=0, column=5)
-        self.acc_label.grid(row=0, column=6)
+        self.acc_frame.grid(row=0, column=5, sticky=NS)
+        self.acc_label.grid(row=0, column=6, sticky=NS)
         seperator2.grid(row=0, column=7, sticky=NS)
-        self.status_label.grid(row=0, column=8, sticky=EW)
+        self.status_label.grid(row=0, column=8, sticky=NSEW)
         boldseperator1.grid(row=1, column=0, columnspan=9, sticky=EW)
 
         # Update memory text to expand
@@ -466,9 +493,9 @@ class App:
         halt_btn = ttk.Button(control_frame, text="Halt", command=self.halt_program, padding=5)
         reset_btn = ttk.Button(control_frame, text="Reset", command=self.reset_program, padding=5)
         seperator3 = ttk.Separator(control_frame, orient=VERTICAL)
-        self.io_label = tk.Label(control_frame, text="I/O", font=("Consolas", 11), 
-                              bg=self.secondary_color, fg=self.secondary_text_color)
-        self.io_text = ttk.Entry(control_frame, font=("Consolas", 25), state=tk.DISABLED, style='IO.TEntry')
+        self.io_label = tk.Label(control_frame, text="I/O", font=FONT["secondary"],
+                              bg=self.secondary_color, fg=self.secondary_text_color, padx=5)
+        self.io_text = ttk.Entry(control_frame, font=FONT["primary"], state=tk.DISABLED, style='IO.TEntry')
 
         control_frame.grid(row=2, column=0, sticky="sew")  # Stick to bottom
 
@@ -477,9 +504,8 @@ class App:
         halt_btn.grid(row=2, rowspan=2, column=0, padx=5, pady=5, sticky="w")
         reset_btn.grid(row=2, rowspan=2, column=1, padx=5, pady=5, sticky="w")
         seperator3.grid(row=0, rowspan=4, column=2, sticky="nsw")
-        self.io_label.grid(row=0, column=2, padx=5, pady=5, sticky="nw")
-        self.io_text.grid(row=1, rowspan=3, column=2, padx=5, pady=5, sticky="ew")
-
+        self.io_label.grid(row=0, column=2, padx=5, pady=(5, 0), sticky="nsw")
+        self.io_text.grid(row=1, rowspan=3, column=2, padx=5, pady=5, sticky="sew")
 
         return control_frame
 
@@ -522,28 +548,30 @@ class App:
 
     def load_memory(self):
         '''Load the program_text widget contents into memory'''
-        text = self.program_text.get("1.0", tk.END).splitlines()
-        self.mem.clear()
-        for addr, instruction in enumerate(text):
-            if instruction.strip() == "":
-                addr -= 1
-                continue
-            elif instruction.strip().__len__() > 5:
-                self.mem.write(addr, instruction[0:5])
-                continue
+        # Execute if program_text widget is not empty
+        if (self.program_text.get("1.0", tk.END).strip()):
+            text = self.program_text.get("1.0", tk.END).splitlines()
+            self.mem.clear()
+            for addr, instruction in enumerate(text):
+                if instruction.strip() == "":
+                    addr -= 1
+                    continue
+                elif instruction.strip().__len__() > 5:
+                    self.mem.write(addr, instruction[0:5])
+                    continue
 
-            try:
-                self.mem.write(addr, instruction.strip())
-            except IndexError:
-                messagebox.showerror("Error", f"Invalid address: {addr}")
-                return
-            except ValueError:
-                messagebox.showerror("Error", f"Invalid instruction: {instruction}")
-                return
-        self.status_label.config(text="Status: Ready")
-        self.update_memory_text()
-        # Switch focus to memory frame after loading
-        self.highlight_memory_frame()
+                try:
+                    self.mem.write(addr, instruction.strip())
+                except IndexError:
+                    messagebox.showerror("Error", f"Invalid address: {addr}")
+                    return
+                except ValueError:
+                    messagebox.showerror("Error", f"Invalid instruction: {instruction}")
+                    return
+            self.status_label.config(text="Status: Ready")
+            self.update_memory_text()
+            # Switch focus to memory frame after loading
+            self.highlight_main_frame()
 
     def adjust_memory_font_size(self, event=None):
         '''Dynamically adjusts font size to fit text within memory_text widget with some padding.'''
@@ -585,7 +613,7 @@ class App:
         self.memory_text.delete("1.0", tk.END)
 
         # Update the colors for the memory text widget
-        self.memory_text.set_colors(self.primary_text_color, self.secondary_text_color)
+        self.memory_text.set_colors(self.primary_text_color, self.pc_text_color)
 
         # Get the current memory lines as a list
         if not text:
@@ -614,8 +642,8 @@ class App:
             
         self.memory_text.tag_add("center", "1.0", "end")
         self.memory_text.config(state=tk.DISABLED)
-        self.pc_label.config(text=str(self.cpu.pointer))
-        self.acc_label.config(text=str(self.cpu.accumulator))
+        self.pc_label.config(text=f"{self.cpu.pointer:02d}") # Ensure PC is always 2 digits
+        self.acc_label.config(text=f"{"+" if self.cpu.accumulator >= 0 else "-"}{abs(int(self.cpu.accumulator)):04d}") # Ensure accumulator is always at least 5 digits
         self.adjust_memory_font_size()
 
     def run_program(self):
@@ -633,8 +661,8 @@ class App:
             cont = False
 
         self.status_label.config(text="Status: Running")
-        # Switch focus to control frame when running
-        self.highlight_memory_frame()
+        # Switch focus to main frame when running
+        self.highlight_main_frame()
             
         try:
             self.boot.run(self, cont)
@@ -656,8 +684,6 @@ class App:
             self.cpu.halted = False
 
         self.status_label.config(text="Status: Stepped")
-        self.pc_label.config(text=str(self.cpu.pointer))
-        self.acc_label.config(text=str(self.cpu.accumulator))
 
         try:
             operand = self.mem.word_to_int(self.mem.read(self.cpu.pointer))
@@ -752,7 +778,7 @@ class App:
         
         # Define disabled entry style
         self.style.map('IO.TEntry',
-                      fieldbackground=[('disabled', self.primary_color)],
+                      fieldbackground=[('disabled', self.secondary_color)],
                       foreground=[('disabled', self.primary_text_color)],
                       background=[('disabled', self.primary_color)])
 
@@ -774,7 +800,7 @@ class App:
         
         # Update disabled state colors
         self.style.map('IO.TEntry',
-                      fieldbackground=[('disabled', self.primary_color)],
+                      fieldbackground=[('disabled', self.secondary_color)],
                       foreground=[('disabled', self.primary_text_color)],
                       background=[('disabled', self.primary_color)])
         
@@ -784,7 +810,7 @@ class App:
         # Regular Text widgets (not ttk)
         self.program_text.configure(
             bg=self.secondary_color,
-            fg=self.primary_text_color
+            fg=self.primary_text_color,
         )
         
         self.memory_text.configure(
@@ -828,20 +854,22 @@ class App:
     def highlight_program_frame(self):
         '''Highlight the program frame and darken other frames'''
         self.program_frame.configure(style='Primary.TFrame')
+        self.instruction_frame.configure(style='Darkened.TFrame')
         self.memory_frame.configure(style='Darkened.TFrame')
         self.control_frame.configure(style='Darkened.TFrame')
 
         self.update_memory_text()
 
-    def highlight_memory_frame(self):
+    def highlight_main_frame(self):
         '''Highlight the memory frame and darken other frames'''
         self.program_frame.configure(style='Darkened.TFrame')
+        self.instruction_frame.configure(style='Primary.TFrame')
         self.memory_frame.configure(style='Primary.TFrame')
         self.control_frame.configure(style='Primary.TFrame')
 
         self.update_memory_text()
 
-    def darken_color(self, color, factor=0.3):
+    def darken_color(self, color, factor=0.4):
         '''Darken a hex color by a given factor'''
         # Remove the '#' if present
         color = color.lstrip('#')
@@ -854,6 +882,3 @@ class App:
         
         # Convert back to hex
         return '#{:02x}{:02x}{:02x}'.format(*darkened_rgb)
-
-
-
