@@ -63,7 +63,7 @@ class CPU:
         Green background: Added text.
         """
         prev_text = self.previous_memory_state
-        curr_text = self.current_memory_state
+        curr_text = self.current_memory_state        
 
         if curr_text is None:
             return
