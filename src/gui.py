@@ -378,8 +378,25 @@ class App:
         save_prog_btn.grid(column=0, row=4, columnspan=2, padx=5, pady=5, sticky="ew")
 
         self.program_text.config(yscrollcommand=scrollbar.set)  # Decreased font size per todos, fixed scrollbar to be inside the textbox
+    
+        self.program_text.last_valid_text = ""
+        self.program_text.bind("<KeyRelease>", self.check_text_length)
+    
+        return prog_input_frame 
+      
+    def check_text_length(self, event):
+        current_text = self.program_text.get("1.0", "end-1c")  # Get text without the trailing newline
+        current_text_lines = current_text.split("\n")
 
-        return prog_input_frame
+        if len(current_text_lines) >= 100:
+            self.program_text.delete("1.0", tk.END)
+            self.program_text.insert("1.0", self.program_text.last_valid_text)
+            messagebox.showerror("Error", f"Maximum Length Exceeded\nLen:{len(current_text_lines+1)}")
+        else:
+            self.program_text.last_valid_text = current_text
+
+    
+
 
     def setup_main_frame(self):
         '''Sets up the main frame of the program. Including the instruction frame, memory frame, and control frame.
@@ -516,7 +533,7 @@ class App:
 
         try:
             with open(file_path, "w") as file:
-                file.write(self.program_text.get("1.0", tk.END))
+                file.write(self.program_text.get("1.0", tk.END).rstrip())
         except Exception as e:
             messagebox.showerror("Error", f"Error: {e}")
             return
@@ -528,18 +545,31 @@ class App:
         if not file_path:
             file_path = filedialog.askopenfilename(defaultextension=".txt", filetypes=[("Text files", "*.txt")])
 
-        if self.program_text.get("1.0", tk.END).strip() != "":
-            self.program_text.insert(tk.END, "\n")
-
+        self.program_text.delete("1.0", tk.END)
+        self.program_text.last_valid_text = ""
+        
         try:
             with open(file_path, "r") as file:
-                self.program_text.insert(tk.END, file.read())
+                text = file.read()
+
+                lines = text.split("\n")
+                data = ""
+
+                for index, line in enumerate(lines):
+                    data += line.split()[0]  
+                    if index != len(lines)-1:
+                        data += "\n"                
+                
+                self.program_text.insert(tk.END, data)
+                self.program_text.last_valid_text = self.program_text.get("1.0", "end-1c")
+
         except FileNotFoundError as e:
             messagebox.showerror("Error", f"File not found: {file_path}")
             return
         except Exception as e:
             messagebox.showerror("Error", f"Error: {e}")
-            return
+            return      
+        
         self.status_label.config(text="Status: Ready")
     
     def clear_program(self):
@@ -552,22 +582,16 @@ class App:
         if (self.program_text.get("1.0", tk.END).strip()):
             text = self.program_text.get("1.0", tk.END).splitlines()
             self.mem.clear()
-            for addr, instruction in enumerate(text):
-                if instruction.strip() == "":
-                    addr -= 1
-                    continue
-                elif instruction.strip().__len__() > 5:
-                    self.mem.write(addr, instruction[0:5])
-                    continue
 
-                try:
-                    self.mem.write(addr, instruction.strip())
-                except IndexError:
-                    messagebox.showerror("Error", f"Invalid address: {addr}")
-                    return
-                except ValueError:
-                    messagebox.showerror("Error", f"Invalid instruction: {instruction}")
-                    return
+            try:
+                self.boot.load_program(text)                
+
+            except IndexError as e:
+                messagebox.showerror("Error", f"Invalid address: {str(e)}")
+                return
+            except ValueError as e:
+                messagebox.showerror("Error", f"Invalid instruction: {str(e)}")
+                return
             self.status_label.config(text="Status: Ready")
             self.update_memory_text()
             # Switch focus to memory frame after loading
@@ -628,7 +652,7 @@ class App:
         for i, line in enumerate(memory_lines):
             instructions = line.split()  # Split the line into individual instructions
             for j, instruction in enumerate(instructions):
-                if i * len(instructions) + j == pc + 1:
+                if i * len(instructions) + j - i == pc + 1:
                     self.memory_text.insert_colored_text(instruction + " ", "secondary")
                     # Display the current instruction in the instructions label
                     try:
@@ -687,8 +711,8 @@ class App:
 
         try:
             operand = self.mem.word_to_int(self.mem.read(self.cpu.pointer))
-            self.cpu.operation(operand, self)
             self.cpu.pointer += 1
+            self.cpu.operation(operand, self)
         
         except Exception as e:
             messagebox.showerror("Runtime Error", str(e))
