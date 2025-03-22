@@ -58,7 +58,7 @@ class CPU:
     def _get_memory(self):
         return self.memory
 
-    def print_memory_states_DEV_ONLY(self):
+    def print_memory(self):
         """Prints the current state of the CPU/Memory with differences highlighted from the previous state
         Green background: Added text.
         """
@@ -101,7 +101,7 @@ class CPU:
             self.previous_memory_state = self.current_memory_state
             self.current_memory_state = str(self.memory)
             if not gui is None:
-                gui.update_memory_text(self.print_memory_states_DEV_ONLY())
+                gui.update_memory_text(self.print_memory())
 
             try:
                 self.register = Memory.word_to_int(self.memory.read(self.pointer))
