@@ -639,7 +639,7 @@ class App:
         for i, line in enumerate(memory_lines):
             instructions = line.split()  # Split the line into individual instructions
             for j, instruction in enumerate(instructions):
-                if i * len(instructions) + j == pc + 1:
+                if i * len(instructions) + j - i == pc + 1:
                     self.memory_text.insert_colored_text(instruction + " ", "secondary")
                     # Display the current instruction in the instructions label
                     try:
@@ -698,8 +698,8 @@ class App:
 
         try:
             operand = self.mem.word_to_int(self.mem.read(self.cpu.pointer))
-            self.cpu.operation(operand, self)
             self.cpu.pointer += 1
+            self.cpu.operation(operand, self)
         
         except Exception as e:
             messagebox.showerror("Runtime Error", str(e))
