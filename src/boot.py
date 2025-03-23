@@ -20,6 +20,15 @@ class Bootstrapper:
         self.cpu = CPU(self.memory)
 
     def load_program(self, program):
+        """Load a program from a list of instructions into memory, starting at address 0
+        
+        Parameters:
+        program (list): List of strings representing BasicML instructions
+
+        Raises:
+        ValueError: If program is too large for memory
+        IndexError: If address is invalid
+        """
         try:
             for addr, instruction in enumerate(program):                
                 self.memory.write(addr, instruction.split()[0].rstrip())
@@ -30,10 +39,10 @@ class Bootstrapper:
                                
 
     def load_from_file(self, file_name: str):
-        """Load a program into memory starting at address 0.
+        """Create a list of instructions from reading a file to pass to load_program()
 
         Parameters:
-        program (list): List of strings representing BasicML instructions
+        file_name (str) : file_name location
 
         Raises:
         ValueError: If program is too large for memory
