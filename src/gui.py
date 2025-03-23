@@ -385,6 +385,10 @@ class App:
         return prog_input_frame 
       
     def check_text_length(self, event):
+        """
+        Bound function to the program_text area, that activates on key release
+        Checks if the length of the text is invaild, if so will revert to previously accepted value
+        """
         current_text = self.program_text.get("1.0", "end-1c")  # Get text without the trailing newline
         current_text_lines = current_text.split("\n")
 
