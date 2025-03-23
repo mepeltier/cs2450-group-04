@@ -568,7 +568,8 @@ class App:
                 self.program_text.last_valid_text = self.program_text.get("1.0", "end-1c")
 
         except FileNotFoundError as e:
-            messagebox.showerror("Error", f"File not found: {file_path}")
+            if file_path:
+                messagebox.showerror("Error", f"File not found: {file_path}")
             return
         except Exception as e:
             messagebox.showerror("Error", f"Error: {e}")
