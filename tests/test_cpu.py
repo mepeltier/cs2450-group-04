@@ -59,7 +59,7 @@ class TestCPU(unittest.TestCase):
         self.cpu.read_from_memory(
             10
         )  
-        assert self.cpu.register == 8  # Memory address contains the numer '+0008'
+        assert self.cpu.register == 8  # Memory address contains the number '+000008'
 
     def test_halt(self):
         with pytest.raises(Halt):
@@ -139,4 +139,22 @@ class TestCPU(unittest.TestCase):
     #         for i, word in enumerate(final_data):
     #             boot.cpu.read_from_memory(i)
     #             assert Memory.word_to_int(word.strip()) == boot.cpu.register
+
+    def test_FULL_PROGRAM_6_DIGIT(self):
+        boot = Bootstrapper()
+
+        boot.load_from_file("tests/cpu_test_6digit.txt")
+        boot.run(gui=None)
+        with open("tests/cpu_test_6digit_final.txt") as file:
+            final_data = file.readlines()
+
+            boot.cpu.read_from_memory(85)
+            assert 1875 == boot.cpu.register
+
+            boot.cpu.read_from_memory(191)
+            assert 482 == boot.cpu.register
+
+            for i, word in enumerate(final_data):
+                boot.cpu.read_from_memory(i)
+                assert Memory.word_to_int(word.strip()) == boot.cpu.register
 
