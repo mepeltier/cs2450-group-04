@@ -89,7 +89,11 @@ class Memory:
 
         # Create memory contents with row numbers
         for i in range(0, self.size, 10):
-            row = f"{i:02d} "
+            if i < 100:
+                row = f"\xa0{i:02d} "
+            else:
+                row = f"{i:03d} "
+
             row += " ".join(self.memory[i : i + 10])
             output.append(row + "\n")
 

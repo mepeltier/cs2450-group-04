@@ -662,7 +662,7 @@ class App:
         self.memory_text.insert_colored_text(" " + first_line + "\n")
 
         for i, line in enumerate(memory_lines):
-            instructions = line.split()  # Split the line into individual instructions
+            instructions = line.split(" ")  # Split the line into individual instructions
             for j, instruction in enumerate(instructions):
                 if i * len(instructions) + j - i == pc + 1:
                     self.memory_text.insert_colored_text(instruction + " ", "secondary")
