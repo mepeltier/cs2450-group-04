@@ -678,8 +678,8 @@ class App:
             
         self.memory_text.tag_add("center", "1.0", "end")
         self.memory_text.config(state=tk.DISABLED)
-        self.pc_label.config(text=f"{self.cpu.pointer:02d}") # Ensure PC is always 2 digits
-        self.acc_label.config(text=f"{"+" if self.cpu.accumulator >= 0 else "-"}{abs(int(self.cpu.accumulator)):04d}") # Ensure accumulator is always at least 5 digits
+        self.pc_label.config(text=f"{self.cpu.pointer:03d}") # Ensure PC is always 3 digits
+        self.acc_label.config(text=f"{"+" if self.cpu.accumulator >= 0 else "-"}{abs(int(self.cpu.accumulator)):06d}") # Ensure accumulator is always at least 7 digits
         self.adjust_memory_font_size()
 
     def run_program(self):
@@ -761,24 +761,24 @@ class App:
         instructions_window.minsize(1100, 375)
         instructions_label = tk.Label(instructions_window, text=textwrap.dedent('''
             I/O operation:
-            READ = 10 Read a word from the keyboard into a specific location in memory.
-            WRITE = 11 Write a word from a specific location in memory to screen.
+            READ = 010 Read a word from the keyboard into a specific location in memory.
+            WRITE = 011 Write a word from a specific location in memory to screen.
                                                                                 
             Load/store operations:
-            LOAD = 20 Load a word from a specific location in memory into the accumulator.
-            STORE = 21 Store a word from the accumulator into a specific location in memory.
+            LOAD = 020 Load a word from a specific location in memory into the accumulator.
+            STORE = 021 Store a word from the accumulator into a specific location in memory.
                                                                                 
             Arithmetic operation:
-            ADD = 30 Add a word from a specific location in memory to the word in the accumulator (leave the result in the accumulator)
-            SUBTRACT = 31 Subtract a word from a specific location in memory from the word in the accumulator (leave the result in the accumulator)
-            DIVIDE = 32 Divide the word in the accumulator by a word from a specific location in memory (leave the result in the accumulator).
-            MULTIPLY = 33 multiply a word from a specific location in memory to the word in the accumulator (leave the result in the accumulator).
+            ADD = 030 Add a word from a specific location in memory to the word in the accumulator (leave the result in the accumulator)
+            SUBTRACT = 031 Subtract a word from a specific location in memory from the word in the accumulator (leave the result in the accumulator)
+            DIVIDE = 032 Divide the word in the accumulator by a word from a specific location in memory (leave the result in the accumulator).
+            MULTIPLY = 033 multiply a word from a specific location in memory to the word in the accumulator (leave the result in the accumulator).
                                                                                 
             Control operation:
-            BRANCH = 40 Branch to a specific location in memory
-            BRANCHNEG = 41 Branch to a specific location in memory if the accumulator is negative.
-            BRANCHZERO = 42 Branch to a specific location in memory if the accumulator is zero.
-            HALT = 43 Pause the program
+            BRANCH = 040 Branch to a specific location in memory
+            BRANCHNEG = 041 Branch to a specific location in memory if the accumulator is negative.
+            BRANCHZERO = 042 Branch to a specific location in memory if the accumulator is zero.
+            HALT = 043 Pause the program
             '''), wraplength=1200, justify=LEFT, font=("Consolas", 11))
         instructions_label.pack(padx=10, pady=10)
 
