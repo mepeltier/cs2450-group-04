@@ -467,7 +467,7 @@ class App:
         self.pc_label = tk.Label(memory_frame, text="00", bg=self.secondary_color, fg=self.secondary_text_color, font=FONT["secondary"])
         seperator1 = ttk.Separator(memory_frame, orient=VERTICAL)
         self.acc_frame = tk.Label(memory_frame, text="Accumulator:", bg=self.secondary_color, fg=self.secondary_text_color, font=FONT["secondary"])
-        self.acc_label = tk.Label(memory_frame, text="+0000", bg=self.secondary_color, fg=self.secondary_text_color, font=FONT["secondary"])
+        self.acc_label = tk.Label(memory_frame, text="+000000", bg=self.secondary_color, fg=self.secondary_text_color, font=FONT["secondary"])
         seperator2 = ttk.Separator(memory_frame, orient=VERTICAL)
         self.status_label = tk.Label(memory_frame, text="Status: Ready", bg=self.secondary_color, fg=self.secondary_text_color, relief=tk.SUNKEN, anchor=tk.W, font=FONT["secondary"])
         boldseperator1 = ttk.Separator(memory_frame, orient=HORIZONTAL)
@@ -679,7 +679,7 @@ class App:
         if self.cpu.halted and self.mem.read(self.cpu.pointer) in ("+4300", "-4300"): # Don't run if the program is halted and send a halt message
             messagebox.showinfo("Halted", "Program is halted")
             return
-        elif self.cpu.halted and self.mem.read(self.cpu.pointer) == "+0000": # Don't run if the memory is empty
+        elif self.cpu.halted and self.mem.read(self.cpu.pointer) == "+000000": # Don't run if the memory is empty
             return
         elif self.cpu.pointer > 0: # If the pointer is greater than 0, continue the program
             self.cpu.halted = False
@@ -703,10 +703,10 @@ class App:
     
     def step_program(self):
         '''Step through the program'''
-        if self.cpu.halted and self.mem.read(self.cpu.pointer) in ("+4300", "-4300"):
+        if self.cpu.halted and self.mem.read(self.cpu.pointer) in ("+043000", "-043000"):
             messagebox.showinfo("Halted", "Program is halted")
             return
-        elif self.cpu.halted and self.mem.read(self.cpu.pointer) == "+0000":
+        elif self.cpu.halted and self.mem.read(self.cpu.pointer) == "+000000":
             return
         else:
             self.cpu.halted = False

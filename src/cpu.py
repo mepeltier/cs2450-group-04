@@ -26,11 +26,11 @@ class CPU:
     # Constants
     MAX = 999999
     MIN = -999999
-    ACCUMULATOR_DEFAULT = 0000
+    ACCUMULATOR_DEFAULT = 000000
     REGISTER_DEFAULT = (
         43000  # Halt command is used as Default
     )
-    POINTER_DEFAULT = 0000
+    POINTER_DEFAULT = 000000
     # Used for testing purposes - Need to force the CPU to halt in case things go wrong
     MAX_INSTRUCTION_LIMIT = 100
 
