@@ -32,7 +32,7 @@ class CPU:
     )
     POINTER_DEFAULT = 000000
     # Used for testing purposes - Need to force the CPU to halt in case things go wrong
-    MAX_INSTRUCTION_LIMIT = 100
+    MAX_INSTRUCTION_LIMIT = 1000
 
     def __init__(
         self,

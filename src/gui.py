@@ -647,7 +647,15 @@ class App:
         if not text:
             text = self.mem.__str__()
         
-        first_line = text.splitlines()[0]  # Get the first line
+        first_line = text.splitlines()[0].split()  # Get the first line
+        column_headers = "  "
+        for header in first_line:
+            column_headers += header
+            column_headers += "      "
+        first_line = column_headers.rstrip()
+        
+            
+        
         memory_lines = text.splitlines()[1:] # Get the rest of the lines
         
         # Insert the first line with left alignment
@@ -676,7 +684,7 @@ class App:
 
     def run_program(self):
         '''Run the program'''
-        if self.cpu.halted and self.mem.read(self.cpu.pointer) in ("+4300", "-4300"): # Don't run if the program is halted and send a halt message
+        if self.cpu.halted and self.mem.read(self.cpu.pointer) in ("+043000", "-043000"): # Don't run if the program is halted and send a halt message
             messagebox.showinfo("Halted", "Program is halted")
             return
         elif self.cpu.halted and self.mem.read(self.cpu.pointer) == "+000000": # Don't run if the memory is empty
