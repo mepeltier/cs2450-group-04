@@ -392,10 +392,10 @@ class App:
         current_text = self.program_text.get("1.0", "end-1c")  # Get text without the trailing newline
         current_text_lines = current_text.split("\n")
 
-        if len(current_text_lines) >= 100:
+        if len(current_text_lines) >= 250:
             self.program_text.delete("1.0", tk.END)
             self.program_text.insert("1.0", self.program_text.last_valid_text)
-            messagebox.showerror("Error", f"Maximum Length Exceeded\nLen:{len(current_text_lines+1)}")
+            messagebox.showerror("Error", f"Maximum Length Exceeded\nLen:{len(current_text_lines)+1}")
         else:
             self.program_text.last_valid_text = current_text
 

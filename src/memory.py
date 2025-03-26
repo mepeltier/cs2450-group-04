@@ -39,7 +39,7 @@ class Memory:
         if not isinstance(word, str):
             raise ValueError("Word must be a string")
 
-        if len(word) != 7:  # +/- and 4 digits
+        if len(word) != 7:  # +/- and 6 digits
             raise ValueError("Word must be 7 characters long (sign + 6 digits)")
 
         if word[0] not in ["+", "-"]:

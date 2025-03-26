@@ -188,7 +188,7 @@
 +000000
 +000000
 +000000
-+903750
++903750 # Do not edit, used for testing values in 3-digit memory space
 +000000
 +000000
 +000000
