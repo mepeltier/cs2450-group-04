@@ -665,7 +665,7 @@ class App:
                         self.instructions.config(text="Instruction")
                 else:
                     self.memory_text.insert_colored_text(instruction + " ", "primary")
-            if not line[0:2] == "90": # Don't add a newline if it is the last line
+            if not line[0:2] == "240": # Don't add a newline if it is the last line
                 self.memory_text.insert_colored_text("\n")
             
         self.memory_text.tag_add("center", "1.0", "end")

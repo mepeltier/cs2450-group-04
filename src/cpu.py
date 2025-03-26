@@ -128,40 +128,9 @@ class CPU:
 
         if max_instructions == 0:
             return "MAX INSTRUCTIONS LIMIT REACHED : Halting"
-
-    @staticmethod
-    def decypher_instruction(word):
-        """Split a 4 digit instruction into an operator an operand.
-
-        ASSUMES _validate(word) has been ran before hand. This is because some words are not valid
-        instructions but are valid 4-digit 'words'
-
-        Parameters:
-            - word : validated word is passed to split 4 digits into the first two and last two digits
-
-        Raises:
-            ValueError : If a word is not a valid instruction (negative or below 1000)
-        """
-
-        if word >= 1000:
-            operator = word // 100
-
-        elif word < 0:
-            # Not sure what to do with negative instructions yet
-            raise ValueError(f"Negative Operation: {word}")
-
-        else:
-            # Shouldn't ever actually occur, because all valid operations start at '10xx'
-            raise ValueError(
-                f"Invalid Operation: {word} | No operations exist under 1000"
-            )
-
-        operand = word % 100
-
-        return (operator, operand)
     
     @staticmethod
-    def decypher_instruction_6digit(word):
+    def decypher_instruction(word):
         # Why 10,000? Because if a 6 digit instruciton starts with an operator of 010, it would be 010 000 meaning >= 10,000
         if word >= 10000:
             operator = word // 1000
@@ -200,7 +169,7 @@ class CPU:
                 - Instructs the machine to halt if certain conditions are met
         """
         try:
-            operator, operand = CPU.decypher_instruction_6digit(word)
+            operator, operand = CPU.decypher_instruction(word)
 
             match operator:
                 # I/O Operations
