@@ -320,8 +320,8 @@ class App:
         '''Sets up the root behavior of the window'''
         self.root = tk.Tk()
         self.root.title("UVSim - BasicML Simulator")
-        self.root.geometry('1007x600')
-        self.root.minsize(1007, 600)
+        self.root.geometry('1007x746')
+        self.root.minsize(1007, 746)
         self.root.iconbitmap('gui/cpu.ico')
         
     
