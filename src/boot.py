@@ -59,3 +59,13 @@ class Bootstrapper:
     def run(self, gui, cont=False):
         """Run the CPU."""
         self.cpu.run(gui, cont)
+
+
+def main():
+    boot = Bootstrapper()
+
+    boot.load_from_file("tests/cpu_test_6digit.txt")
+    print(boot.cpu.print_memory())
+
+if __name__ == "__main__":
+    main()

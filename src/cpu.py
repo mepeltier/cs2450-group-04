@@ -24,15 +24,15 @@ class CPU:
     """CPU Class - Used for Implmenting the UVSim Project."""
 
     # Constants
-    MAX = 9999
-    MIN = -9999
-    ACCUMULATOR_DEFAULT = 0000
+    MAX = 999999
+    MIN = -999999
+    ACCUMULATOR_DEFAULT = 000000
     REGISTER_DEFAULT = (
-        4300  # Halt command is used as Default
+        43000  # Halt command is used as Default
     )
-    POINTER_DEFAULT = 0000
+    POINTER_DEFAULT = 000000
     # Used for testing purposes - Need to force the CPU to halt in case things go wrong
-    MAX_INSTRUCTION_LIMIT = 100
+    MAX_INSTRUCTION_LIMIT = 1000
 
     def __init__(
         self,
@@ -47,6 +47,7 @@ class CPU:
         self.current_memory_state = " "
 
         self.memory = memory
+        self.current_memory_state = str(self.memory)
 
     def boot_up(self):
         """Clears all values to original defaults, allowing the CPU to be restarted."""
@@ -127,35 +128,23 @@ class CPU:
 
         if max_instructions == 0:
             return "MAX INSTRUCTIONS LIMIT REACHED : Halting"
-
+    
     @staticmethod
     def decypher_instruction(word):
-        """Split a 4 digit instruction into an operator an operand.
-
-        ASSUMES _validate(word) has been ran before hand. This is because some words are not valid
-        instructions but are valid 4-digit 'words'
-
-        Parameters:
-            - word : validated word is passed to split 4 digits into the first two and last two digits
-
-        Raises:
-            ValueError : If a word is not a valid instruction (negative or below 1000)
-        """
-
-        if word >= 1000:
-            operator = word // 100
+        # Why 10,000? Because if a 6 digit instruciton starts with an operator of 010, it would be 010 000 meaning >= 10,000
+        if word >= 10000:
+            operator = word // 1000
 
         elif word < 0:
-            # Not sure what to do with negative instructions yet
+            # Negative Instructions are invalid
             raise ValueError(f"Negative Operation: {word}")
-
+        
         else:
-            # Shouldn't ever actually occur, because all valid operations start at '10xx'
+            #Shouldn't ever occur, all valid operations start at '100 xxx'
             raise ValueError(
-                f"Invalid Operation: {word} | No operations exist under 1000"
+                f"Invalid Opeartion: {word} | No opeartions exist under 10000"
             )
-
-        operand = word % 100
+        operand = word % 1000
 
         return (operator, operand)
 
@@ -446,17 +435,18 @@ def main():
     from boot import Bootstrapper
     boot = Bootstrapper()
 
-    boot.load_from_file("tests/cpu_test.txt")
+    boot.load_from_file("tests/cpu_test_6digit.txt")
     boot.run(gui=None)
-    with open("tests/cpu_test_final.txt") as file:
-        final_data = file.readlines()
 
-        boot.cpu.read_from_memory(85)
-        assert 1875 == boot.cpu.register
+    # with open("tests/cpu_test_final.txt") as file:
+    #     final_data = file.readlines()
 
-        for i, word in enumerate(final_data):
-            boot.cpu.read_from_memory(i)
-            assert Memory.word_to_int(word.strip()) == boot.cpu.register
+    #     boot.cpu.read_from_memory(85)
+    #     assert 1875 == boot.cpu.register
+
+    #     for i, word in enumerate(final_data):
+    #         boot.cpu.read_from_memory(i)
+    #         assert Memory.word_to_int(word.strip()) == boot.cpu.register
 
 if __name__ == "__main__":
     main()

@@ -392,10 +392,10 @@ class App:
         current_text = self.program_text.get("1.0", "end-1c")  # Get text without the trailing newline
         current_text_lines = current_text.split("\n")
 
-        if len(current_text_lines) >= 100:
+        if len(current_text_lines) >= 250:
             self.program_text.delete("1.0", tk.END)
             self.program_text.insert("1.0", self.program_text.last_valid_text)
-            messagebox.showerror("Error", f"Maximum Length Exceeded\nLen:{len(current_text_lines+1)}")
+            messagebox.showerror("Error", f"Maximum Length Exceeded\nLen:{len(current_text_lines)+1}")
         else:
             self.program_text.last_valid_text = current_text
 
@@ -467,7 +467,7 @@ class App:
         self.pc_label = tk.Label(memory_frame, text="00", bg=self.secondary_color, fg=self.secondary_text_color, font=FONT["secondary"])
         seperator1 = ttk.Separator(memory_frame, orient=VERTICAL)
         self.acc_frame = tk.Label(memory_frame, text="Accumulator:", bg=self.secondary_color, fg=self.secondary_text_color, font=FONT["secondary"])
-        self.acc_label = tk.Label(memory_frame, text="+0000", bg=self.secondary_color, fg=self.secondary_text_color, font=FONT["secondary"])
+        self.acc_label = tk.Label(memory_frame, text="+000000", bg=self.secondary_color, fg=self.secondary_text_color, font=FONT["secondary"])
         seperator2 = ttk.Separator(memory_frame, orient=VERTICAL)
         self.status_label = tk.Label(memory_frame, text="Status: Ready", bg=self.secondary_color, fg=self.secondary_text_color, relief=tk.SUNKEN, anchor=tk.W, font=FONT["secondary"])
         boldseperator1 = ttk.Separator(memory_frame, orient=HORIZONTAL)
@@ -647,14 +647,22 @@ class App:
         if not text:
             text = self.mem.__str__()
         
-        first_line = text.splitlines()[0]  # Get the first line
+        first_line = text.splitlines()[0].split()  # Get the first line
+        column_headers = "  "
+        for header in first_line:
+            column_headers += header
+            column_headers += "      "
+        first_line = column_headers.rstrip()
+        
+            
+        
         memory_lines = text.splitlines()[1:] # Get the rest of the lines
         
         # Insert the first line with left alignment
         self.memory_text.insert_colored_text(" " + first_line + "\n")
 
         for i, line in enumerate(memory_lines):
-            instructions = line.split()  # Split the line into individual instructions
+            instructions = line.split(" ")  # Split the line into individual instructions
             for j, instruction in enumerate(instructions):
                 if i * len(instructions) + j - i == pc + 1:
                     self.memory_text.insert_colored_text(instruction + " ", "secondary")
@@ -665,21 +673,21 @@ class App:
                         self.instructions.config(text="Instruction")
                 else:
                     self.memory_text.insert_colored_text(instruction + " ", "primary")
-            if not line[0:2] == "90": # Don't add a newline if it is the last line
+            if not line[0:2] == "240": # Don't add a newline if it is the last line
                 self.memory_text.insert_colored_text("\n")
             
         self.memory_text.tag_add("center", "1.0", "end")
         self.memory_text.config(state=tk.DISABLED)
-        self.pc_label.config(text=f"{self.cpu.pointer:02d}") # Ensure PC is always 2 digits
-        self.acc_label.config(text=f"{"+" if self.cpu.accumulator >= 0 else "-"}{abs(int(self.cpu.accumulator)):04d}") # Ensure accumulator is always at least 5 digits
+        self.pc_label.config(text=f"{self.cpu.pointer:03d}") # Ensure PC is always 3 digits
+        self.acc_label.config(text=f"{"+" if self.cpu.accumulator >= 0 else "-"}{abs(int(self.cpu.accumulator)):06d}") # Ensure accumulator is always at least 7 digits
         self.adjust_memory_font_size()
 
     def run_program(self):
         '''Run the program'''
-        if self.cpu.halted and self.mem.read(self.cpu.pointer) in ("+4300", "-4300"): # Don't run if the program is halted and send a halt message
+        if self.cpu.halted and self.mem.read(self.cpu.pointer) in ("+043000", "-043000"): # Don't run if the program is halted and send a halt message
             messagebox.showinfo("Halted", "Program is halted")
             return
-        elif self.cpu.halted and self.mem.read(self.cpu.pointer) == "+0000": # Don't run if the memory is empty
+        elif self.cpu.halted and self.mem.read(self.cpu.pointer) == "+000000": # Don't run if the memory is empty
             return
         elif self.cpu.pointer > 0: # If the pointer is greater than 0, continue the program
             self.cpu.halted = False
@@ -703,10 +711,10 @@ class App:
     
     def step_program(self):
         '''Step through the program'''
-        if self.cpu.halted and self.mem.read(self.cpu.pointer) in ("+4300", "-4300"):
+        if self.cpu.halted and self.mem.read(self.cpu.pointer) in ("+043000", "-043000"):
             messagebox.showinfo("Halted", "Program is halted")
             return
-        elif self.cpu.halted and self.mem.read(self.cpu.pointer) == "+0000":
+        elif self.cpu.halted and self.mem.read(self.cpu.pointer) == "+000000":
             return
         else:
             self.cpu.halted = False
@@ -753,24 +761,24 @@ class App:
         instructions_window.minsize(1100, 375)
         instructions_label = tk.Label(instructions_window, text=textwrap.dedent('''
             I/O operation:
-            READ = 10 Read a word from the keyboard into a specific location in memory.
-            WRITE = 11 Write a word from a specific location in memory to screen.
+            READ = 010 Read a word from the keyboard into a specific location in memory.
+            WRITE = 011 Write a word from a specific location in memory to screen.
                                                                                 
             Load/store operations:
-            LOAD = 20 Load a word from a specific location in memory into the accumulator.
-            STORE = 21 Store a word from the accumulator into a specific location in memory.
+            LOAD = 020 Load a word from a specific location in memory into the accumulator.
+            STORE = 021 Store a word from the accumulator into a specific location in memory.
                                                                                 
             Arithmetic operation:
-            ADD = 30 Add a word from a specific location in memory to the word in the accumulator (leave the result in the accumulator)
-            SUBTRACT = 31 Subtract a word from a specific location in memory from the word in the accumulator (leave the result in the accumulator)
-            DIVIDE = 32 Divide the word in the accumulator by a word from a specific location in memory (leave the result in the accumulator).
-            MULTIPLY = 33 multiply a word from a specific location in memory to the word in the accumulator (leave the result in the accumulator).
+            ADD = 030 Add a word from a specific location in memory to the word in the accumulator (leave the result in the accumulator)
+            SUBTRACT = 031 Subtract a word from a specific location in memory from the word in the accumulator (leave the result in the accumulator)
+            DIVIDE = 032 Divide the word in the accumulator by a word from a specific location in memory (leave the result in the accumulator).
+            MULTIPLY = 033 multiply a word from a specific location in memory to the word in the accumulator (leave the result in the accumulator).
                                                                                 
             Control operation:
-            BRANCH = 40 Branch to a specific location in memory
-            BRANCHNEG = 41 Branch to a specific location in memory if the accumulator is negative.
-            BRANCHZERO = 42 Branch to a specific location in memory if the accumulator is zero.
-            HALT = 43 Pause the program
+            BRANCH = 040 Branch to a specific location in memory
+            BRANCHNEG = 041 Branch to a specific location in memory if the accumulator is negative.
+            BRANCHZERO = 042 Branch to a specific location in memory if the accumulator is zero.
+            HALT = 043 Pause the program
             '''), wraplength=1200, justify=LEFT, font=("Consolas", 11))
         instructions_label.pack(padx=10, pady=10)
 
