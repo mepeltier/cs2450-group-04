@@ -6,7 +6,7 @@ authors = ["Micah Peltier <micah6_8@yahoo.com>",
             "Quinton Grant", 
             "Stephen Laing", 
             "Shawn Crook"]
-readme = "README.md"
+readme = "docs/README.md"
 
 [tool.poetry.dependencies]
 python = "^3.12"
