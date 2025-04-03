@@ -8,6 +8,8 @@ from tkinter import filedialog, messagebox, ttk, font, colorchooser
 import json
 import os
 
+from src.legacy import convert_file
+
 class ColoredText(tk.Text):
     '''Class to handle colored text from termcolor in the GUI'''
     def __init__(self, *args, **kwargs):
@@ -363,6 +365,8 @@ class App:
         load_file_btn = ttk.Button(prog_input_frame, text="Load File", command=self.load_file, padding=5)
         clear_btn = ttk.Button(prog_input_frame, text="Clear", command=self.clear_program, padding=5)
         load_mem_btn = ttk.Button(prog_input_frame, text="Load Into Memory", command=self.load_memory, padding=5)
+        convert_file_btn = ttk.Button(prog_input_frame, text="Convert Legacy File", command=self.convert_file, padding=5)
+
         self.program_text = tk.Text(prog_input_frame, width=10, font=FONT["primary"], wrap=NONE)
         scrollbar = ttk.Scrollbar(prog_input_frame, orient=VERTICAL, command=self.program_text.yview)
         # Add a small separator
@@ -376,6 +380,7 @@ class App:
         scrollbar.grid(column=1, row=2, pady=5, sticky="nse")
         separator.grid(column=0, row=3, columnspan=2, padx=3, pady=5, sticky="ew")
         save_prog_btn.grid(column=0, row=4, columnspan=2, padx=5, pady=5, sticky="ew")
+        convert_file_btn.grid(column=0, row=5, columnspan=2, padx=5, pady=5, sticky="ew")
 
         self.program_text.config(yscrollcommand=scrollbar.set)  # Decreased font size per todos, fixed scrollbar to be inside the textbox
     
@@ -568,7 +573,8 @@ class App:
                 self.program_text.last_valid_text = self.program_text.get("1.0", "end-1c")
 
         except FileNotFoundError as e:
-            messagebox.showerror("Error", f"File not found: {file_path}")
+            if file_path:
+                messagebox.showerror("Error", f"File not found: {file_path}")
             return
         except Exception as e:
             messagebox.showerror("Error", f"Error: {e}")
@@ -579,6 +585,21 @@ class App:
     def clear_program(self):
         '''Clear the program_text widget'''
         self.program_text.delete("1.0", tk.END)
+    
+    def convert_file(self, file_path: str | None = None):
+        try:
+            if not file_path:
+                file_path = filedialog.askopenfilename(defaultextension=".txt", filetypes=[("Text files", "*.txt")])
+
+            convert_file(file_path)
+        except FileNotFoundError as e:
+            if file_path:
+                messagebox.showerror("Error", f"File not found: {file_path}")
+            return
+        except Exception as e:
+            messagebox.showerror("Error", f"Error: {e}")
+            return
+
 
     def load_memory(self):
         '''Load the program_text widget contents into memory'''
