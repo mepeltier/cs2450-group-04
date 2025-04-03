@@ -270,16 +270,27 @@ class CPU:
         Return - None
         """
         def read_input(event):
-            while (True):
+            check = True
+            while (check):
                 operand = gui.io_text.get().strip()
 
                 try:
                     gui.input.set(self.memory.word_to_int(operand))
+                    check = False
                     break
                 except ValueError as e:
-                    messagebox.showerror("Error", str(e))
-                    gui.root.wait_variable(gui.input)
-                    continue
+                    pass
+                
+                if check:
+                    try:
+                        operand = self.memory.int_to_word(int(operand))
+                        gui.input.set(self.memory.word_to_int(operand))
+                        break
+                        
+                    except ValueError as e:
+                        messagebox.showerror("Error", str(e))
+                        gui.root.wait_variable(gui.input)
+                        continue
         
         gui.io_text.config(state=tk.NORMAL)
         gui.io_text.delete("0", "end")
