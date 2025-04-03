@@ -584,6 +584,9 @@ class App:
         '''Load the program_text widget contents into memory'''
         # Execute if program_text widget is not empty
         if (self.program_text.get("1.0", tk.END).strip()):
+
+            self.reset_program()
+
             text = self.program_text.get("1.0", tk.END).splitlines()
             self.mem.clear()
 
@@ -596,6 +599,7 @@ class App:
             except ValueError as e:
                 messagebox.showerror("Error", f"Invalid instruction: {str(e)}")
                 return
+            
             self.status_label.config(text="Status: Ready")
             self.update_memory_text()
             # Switch focus to memory frame after loading
