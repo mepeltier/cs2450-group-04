@@ -548,6 +548,9 @@ class App:
         '''Load a file into the program_text widget'''
         if not file_path:
             file_path = filedialog.askopenfilename(defaultextension=".txt", filetypes=[("Text files", "*.txt")])
+        
+        if not file_path:
+            return
 
         self.program_text.delete("1.0", tk.END)
         self.program_text.last_valid_text = ""
