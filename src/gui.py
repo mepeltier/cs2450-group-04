@@ -568,10 +568,11 @@ class App:
                 data = ""
 
                 for index, line in enumerate(lines):
-                    data += line.split()[0]  
-                    if index != len(lines)-1:
-                        data += "\n"                
-                
+                    if line:
+                        data += line.split()[0]  
+                        if index != len(lines)-1:
+                            data += "\n"                
+                    
                 self.program_text.insert(tk.END, data)
                 self.program_text.last_valid_text = self.program_text.get("1.0", "end-1c")
 

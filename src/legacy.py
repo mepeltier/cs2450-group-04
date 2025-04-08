@@ -17,7 +17,8 @@ def convert_file(file_path: str):
 
     with open(file_path, "r") as f:
         for line in f:
-            word = line.strip()
+            word = line.split()
+            word = word[0]
             try:
                 instruction = legacy_word_to_new(word)
                 instructions.append(f"{instruction}\n")
@@ -26,6 +27,7 @@ def convert_file(file_path: str):
                     f'Invalid instruction "{word}" in file: {file_path}\nNulling that line',
                 )
                 instructions.append("+000000\n")
+        instructions[-1] = instructions[-1].rstrip()
 
     idx = file_path.rfind(".")
     copy_file = file_path[:idx] + " copy" + file_path[idx:]
