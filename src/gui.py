@@ -619,6 +619,9 @@ class App:
                 if len(text[0]) == 5:
                     print("LEGACY LOAD")
                     self.boot.legacy_load(text)
+                    self.program_text.delete("1.0", tk.END)
+                    for line in text:
+                        self.program_text.insert(tk.END, f"{line[0]}0{line[1:4]}0{line[4:]}\n") 
                 else:
                     print("LOAD")
                     self.boot.load_program(text)                
