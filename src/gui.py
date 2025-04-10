@@ -616,7 +616,12 @@ class App:
             self.mem.clear()
 
             try:
-                self.boot.load_program(text)                
+                if len(text[0]) == 5:
+                    print("LEGACY LOAD")
+                    self.boot.legacy_load(text)
+                else:
+                    print("LOAD")
+                    self.boot.load_program(text)                
 
             except IndexError as e:
                 messagebox.showerror("Error", f"Invalid address: {str(e)}")
