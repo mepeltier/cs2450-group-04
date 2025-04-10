@@ -386,10 +386,6 @@ class App:
         self.notebook.add(self.plus_tab, text="+", padding=5)
         self.notebook.grid(column=0, row=2, columnspan=2, padx=5, pady=5, sticky="nsew")
         self.notebook.bind("<<NotebookTabChanged>>", self.on_tab_changed)
-        #self.notebook.bind("<Button-3>", self.on_tab_right_click)
-        #self.tab_frame = ttk.Frame(self.notebook)
-        #self.program_text = tk.Text(self.tab_frame, width=10, font=FONT["primary"], wrap=NONE)
-        #scrollbar = ttk.Scrollbar(prog_input_frame, orient=VERTICAL, command=self.program_text.yview)
         
         # Add a small separator
         separator = ttk.Separator(prog_input_frame, orient=HORIZONTAL)
@@ -402,11 +398,6 @@ class App:
         separator.grid(column=0, row=3, columnspan=2, padx=3, pady=5, sticky="ew")
         save_prog_btn.grid(column=0, row=4, columnspan=2, padx=5, pady=5, sticky="ew")
         convert_file_btn.grid(column=0, row=5, columnspan=2, padx=5, pady=5, sticky="ew")
-
-        #self.program_text.config(yscrollcommand=scrollbar.set)  # Decreased font size per todos, fixed scrollbar to be inside the textbox
-    
-        #self.program_text.last_valid_text = ""
-        #self.program_text.bind("<KeyRelease>", self.check_text_length)
     
         return prog_input_frame 
       
@@ -554,6 +545,7 @@ class App:
         return control_frame
 
     def save_file(self, file_path=None):
+        '''Save the contents of the program_text widget to a file'''
         tab_data = self.get_current_tab_data()
         if not tab_data:
             return
@@ -566,11 +558,12 @@ class App:
         try:
             with open(file_path, "w") as file:
                 file.write(prog_text_widget.get("1.0", tk.END).rstrip())
-            tab_data["file_path"] = file_path
-            self.notebook.tab(self.notebook.select(), text=os.path.basename(file_path))
-            self.status_label.config(text="Status: File saved successfully")
+                tab_data["file_path"] = file_path
+                self.notebook.tab(self.notebook.select(), text=os.path.basename(file_path))
         except Exception as e:
             messagebox.showerror("Error", f"Error saving file: {e}")
+            return
+        self.status_label.config(text="Status: File saved successfully")
 
     def load_file(self, file_path=None):
         '''Load a file into the program_text widget'''
@@ -592,21 +585,29 @@ class App:
             else:
                 prog_text_widget = tab_data["text_widget"]
                 prog_text_widget.delete("1.0", tk.END)
+                prog_text_widget.last_valid_text = ""
                 try:
                     with open(file_path, "r") as file:
-                        lines = file.read().split("\n")  
-                    text = "\n".join(line.split()[0] for line in lines if line)
-                    prog_text_widget.insert(tk.END, text)
-                    prog_text_widget.last_valid_text = text
-                    tab_data["file_path"] = file_path
-                    tab_data["last_valid"] = text
-                    self.notebook.tab(widget, text=os.path.basename(file_path))
+                        lines = file.read().split("\n") 
+                        data = ""
+
+                        for index, line in enumerate(lines):
+                            if line:
+                                data += line.split()[0]
+                                if index != len(lines)-1:
+                                    data += "\n"
+
+                        prog_text_widget.insert(tk.END, data)
+                        prog_text_widget.last_valid_text = prog_text_widget.get("1.0", "end-1c")
+                        tab_data["file_path"] = file_path
+                        tab_data["last_valid"] = data
+                        self.notebook.tab(widget, text=os.path.basename(file_path))
+                        return
+                except FileNotFoundError as e:
+                    messagebox.showerror("Error", f"File not found: {file_path}")
                     return
                 except Exception as e:
-                    messagebox.showerror("Error", f"Error loading file: {e}")
-                    return
-                except Exception as e:
-                    messagebox.showerror("Error", f"Error loading file: {e}")
+                    messagebox.showerror("Error", f"Error: {e}")
                     return
 
         tab_frame = ttk.Frame(self.notebook)
@@ -620,20 +621,10 @@ class App:
         prog_text_widget.last_valid_text = ""
         prog_text_widget.bind("<KeyRelease>", self.check_text_length)
 
-        try:
-            with open(file_path, "r") as file:
-                lines = file.read().split("\n")
-                text = "\n".join(line.split()[0] for line in lines if line)
-                prog_text_widget.insert(tk.END, text)
-                prog_text_widget.last_valid_text = text
-        except Exception as e:
-            messagebox.showerror("Error", f"Error loading file: {e}")
-            return
-
         self.file_tabs[tab_frame] = {
             "text_widget": prog_text_widget,
             "file_path": file_path,
-            "last_valid": text
+            "last_valid": data
         }
 
         self.notebook.insert(self.notebook.index(self.plus_tab), tab_frame, text=os.path.basename(file_path))
@@ -650,17 +641,12 @@ class App:
         if not tab_data:
             return
 
+        self.file_tabs.pop(widget, None)
+        self.notebook.forget(widget)
         prog_text_widget = tab_data["text_widget"]
-        current_text = prog_text_widget.get("1.0", tk.END).strip()
-        if current_text == "":
-            # Close the tab if it's empty
-            self.file_tabs.pop(widget, None)
-            self.notebook.forget(widget)
-        else:
-            # Otherwise, clear the text
-            prog_text_widget.delete("1.0", tk.END)
-            tab_data["last_valid"] = ""
-    
+        prog_text_widget.delete("1.0", tk.END)
+        tab_data["last_valid"] = ""
+
     def convert_file(self, file_path: str | None = None):
         try:
             if not file_path:
