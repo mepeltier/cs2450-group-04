@@ -13,6 +13,7 @@ def legacy_word_to_new(word: str):
 
 
 def convert_file(file_path: str):
+    errors = []
     instructions = []
 
     with open(file_path, "r") as f:
@@ -23,6 +24,7 @@ def convert_file(file_path: str):
                 instruction = legacy_word_to_new(word)
                 instructions.append(f"{instruction}\n")
             except ValueError as e:
+                errors.append(word)
                 print(
                     f'Invalid instruction "{word}" in file: {file_path}\nNulling that line',
                 )
@@ -34,3 +36,10 @@ def convert_file(file_path: str):
 
     with open(copy_file, "w") as file:
         file.writelines(instructions)
+
+    if errors:
+        raise ValueError(
+            f"Invalid instructions '{" ".join(errors)}' in file: {file_path}. "
+            f"\nThose lines have been nulled. \n\nFile saved at {copy_file}"
+        )
+    return copy_file
