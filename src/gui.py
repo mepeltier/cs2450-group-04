@@ -595,7 +595,8 @@ class App:
             if not file_path:
                 file_path = filedialog.askopenfilename(defaultextension=".txt", filetypes=[("Text files", "*.txt")])
 
-            convert_file(file_path)
+            copy = convert_file(file_path)
+            messagebox.showinfo("Success", f"Successfully saved file to {copy}")
         except FileNotFoundError as e:
             if file_path:
                 messagebox.showerror("Error", f"File not found: {file_path}")
@@ -616,7 +617,15 @@ class App:
             self.mem.clear()
 
             try:
-                self.boot.load_program(text)                
+                if len(text[0]) == 5:
+                    print("LEGACY LOAD")
+                    self.boot.legacy_load(text)
+                    self.program_text.delete("1.0", tk.END)
+                    for line in text:
+                        self.program_text.insert(tk.END, f"{line[0]}0{line[1:4]}0{line[4:]}\n") 
+                else:
+                    print("LOAD")
+                    self.boot.load_program(text)                
 
             except IndexError as e:
                 messagebox.showerror("Error", f"Invalid address: {str(e)}")
