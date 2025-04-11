@@ -3,6 +3,7 @@
 import logging
 from typing import List
 from src.cpu import CPU
+from src.legacy import legacy_word_to_new
 from src.memory import Memory
 
 LOGGER = logging.getLogger(__name__)
@@ -38,6 +39,25 @@ class Bootstrapper:
             raise ValueError(instruction)
                                
 
+    def legacy_load(self, program):
+        """Load a program from a list of instructions into memory, starting at address 0
+
+        Parameters:
+        program (list): List of strings representing BasicML instructions
+
+        Raises:
+        ValueError: If program is too large for memory
+        IndexError: If address is invalid
+        """
+        try:
+            for addr, instruction in enumerate(program):
+                converted_instruction = legacy_word_to_new(instruction)
+                self.memory.write(addr, converted_instruction.split()[0].rstrip())
+        except IndexError:
+            raise IndexError(addr)
+        except ValueError:
+            raise ValueError(instruction)
+    
     def load_from_file(self, file_name: str):
         """Create a list of instructions from reading a file to pass to load_program()
 

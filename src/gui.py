@@ -676,9 +676,9 @@ class App:
                 self.program_text.delete("1.0", tk.END)
                 for line in text:
                     self.program_text.insert(tk.END, f"{line[0]}0{line[1:4]}0{line[4:]}\n") 
-                else:
-                    print("LOAD")
-                    self.boot.load_program(text)
+            else:
+                print("LOAD")
+                self.boot.load_program(text)                
 
         except (IndexError, ValueError) as e:
             messagebox.showerror("Error", str(e))
