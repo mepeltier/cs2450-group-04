@@ -1,10 +1,6 @@
 """CPU for UVSim."""
 
-try:
-    from src.memory import Memory
-except ImportError:
-    from .memory import Memory
-
+from .memory import Memory
 from termcolor import colored
 import difflib
 import tkinter as tk
