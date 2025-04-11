@@ -274,6 +274,9 @@ class App:
         self.mem = boot.memory
         self.cpu = boot.cpu
 
+        # Set Maximum number of files to be opened in GUI tabs
+        self.max_files = 3
+
         # Initialize default colors
         self.default_primary_color = COLOR["primary"]  # Dark green for backgrounds
         self.default_secondary_color = COLOR["secondary"]  # White accent
@@ -325,7 +328,6 @@ class App:
         self.root.geometry('1007x746')
         self.root.minsize(1007, 746)
         self.root.iconbitmap('gui/cpu.ico')
-        
     
     def setup_menu_bar(self):
         '''Sets up the menu bar and its behavior'''
@@ -349,17 +351,7 @@ class App:
 
     @property
     def program_text(self):
-        return self.get_current_prog_text_widget()
-
-    @property
-    def current_file_path(self):
-        tab_data = self.get_current_tab_data()
-        return tab_data["file_path"] if tab_data else None
-
-    @property
-    def last_valid_text(self):
-        tab_data = self.get_current_tab_data()
-        return tab_data["last_valid"] if tab_data else None
+        return self.get_prog_text_widget()
     
     def setup_program_frame(self):
         '''Sets up the program frame, the area for loading in and editing the program.
@@ -384,7 +376,6 @@ class App:
         self.file_tabs = {}
         self.plus_tab = ttk.Frame(self.notebook)
         self.notebook.add(self.plus_tab, text="+", padding=5)
-        self.notebook.grid(column=0, row=2, columnspan=2, padx=5, pady=5, sticky="nsew")
         self.notebook.bind("<<NotebookTabChanged>>", self.on_tab_changed)
         
         # Add a small separator
@@ -546,12 +537,14 @@ class App:
 
     def save_file(self, file_path=None):
         '''Save the contents of the program_text widget to a file'''
-        tab_data = self.get_current_tab_data()
+        tab_data = self.get_tab_data()
         if not tab_data:
             return
 
         prog_text_widget = self.program_text
-        file_path = file_path or filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[("Text files", "*.txt")])
+        # Get the filename of the current tab selected and set as the initial file name in the dialog or leave blankk if it's a new file
+        init_file = tab_data["file_path"] if tab_data["file_path"] else ""
+        file_path = file_path or filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[("Text files", "*.txt")], initialfile=os.path.basename(init_file))
         if not file_path:
             return
 
@@ -574,78 +567,76 @@ class App:
 
         current_tab = self.notebook.select()
         widget = self.notebook.nametowidget(current_tab)
-        if widget in self.file_tabs:
-            tab_data = self.file_tabs[widget]
-            if self.notebook.tab(widget, "text") == "Untitled":
-                current_text = tab_data["text_widget"].get("1.0", tk.END).strip()
-        if current_text == "":
-            if len(self.file_tabs) > 1:
-                self.file_tabs.pop(widget, None)
-                self.notebook.forget(widget)
-            else:
-                prog_text_widget = tab_data["text_widget"]
-                prog_text_widget.delete("1.0", tk.END)
-                prog_text_widget.last_valid_text = ""
-                try:
-                    with open(file_path, "r") as file:
-                        lines = file.read().split("\n") 
-                        data = ""
 
-                        for index, line in enumerate(lines):
-                            if line:
-                                data += line.split()[0]
-                                if index != len(lines)-1:
-                                    data += "\n"
+        # Check if the current tab already has a file_path
+        if widget in self.file_tabs and self.file_tabs[widget]["file_path"]:
+            # Ensure the number of tabs does not exceed the maximum amount of files
+            if len(self.file_tabs) >= self.max_files:
+                messagebox.showerror("Error", "Cannot open more than 3 files at once.")
+                return
 
-                        prog_text_widget.insert(tk.END, data)
-                        prog_text_widget.last_valid_text = prog_text_widget.get("1.0", "end-1c")
-                        tab_data["file_path"] = file_path
-                        tab_data["last_valid"] = data
-                        self.notebook.tab(widget, text=os.path.basename(file_path))
-                        return
-                except FileNotFoundError as e:
-                    messagebox.showerror("Error", f"File not found: {file_path}")
-                    return
-                except Exception as e:
-                    messagebox.showerror("Error", f"Error: {e}")
-                    return
+            # Create a new tab for the file
+            self.new_tab()
+            current_tab = self.notebook.select()
+            widget = self.notebook.nametowidget(current_tab)
 
-        tab_frame = ttk.Frame(self.notebook)
-        prog_text_frame = ttk.Frame(tab_frame)
-        prog_text_widget = tk.Text(prog_text_frame, width=10, font=FONT["primary"], wrap=NONE)
-        scrollbar = ttk.Scrollbar(prog_text_frame, orient=tk.VERTICAL, command=prog_text_widget.yview)
-        prog_text_widget.configure(yscrollcommand=scrollbar.set)
-        prog_text_widget.pack(side="left", fill="both", expand=True)
-        scrollbar.pack(side="right", fill="y")
-        prog_text_frame.pack(fill="both", expand=True)
+        # Load the file into the current tab
+        tab_data = self.file_tabs.get(widget)
+        prog_text_widget = tab_data["text_widget"]
+        prog_text_widget.delete("1.0", tk.END)
         prog_text_widget.last_valid_text = ""
-        prog_text_widget.bind("<KeyRelease>", self.check_text_length)
 
-        self.file_tabs[tab_frame] = {
-            "text_widget": prog_text_widget,
-            "file_path": file_path,
-            "last_valid": data
-        }
+        try:
+            with open(file_path, "r") as file:
+                lines = file.read().split("\n")
+                data = ""
+                for index, line in enumerate(lines):
+                    if line:
+                        data += line.split()[0]
+                        if index != len(lines) - 1:
+                            data += "\n"
+                prog_text_widget.insert(tk.END, data)
+                prog_text_widget.last_valid_text = prog_text_widget.get("1.0", "end-1c")
+                tab_data["file_path"] = file_path
+                trunc_path = self.truncate_text(os.path.basename(file_path))
+                self.notebook.tab(widget, text=trunc_path)
+        except FileNotFoundError:
+            messagebox.showerror("Error", f"File not found: {file_path}")
+        except Exception as e:
+            messagebox.showerror("Error", f"Error: {e}")
 
-        self.notebook.insert(self.notebook.index(self.plus_tab), tab_frame, text=os.path.basename(file_path))
-        self.notebook.select(tab_frame)
-        
-        self.status_label.config(text="Status: Ready")
+    def check_file_changed(self):
+        '''Check if the file exists and compare its contents with the current text'''
+        tab_data = self.get_tab_data()
+        file_path = tab_data["file_path"]
+        if not file_path or not os.path.exists(file_path):
+            return
+
+        with open(file_path, "r") as file:
+            file_contents = file.read().strip()
+
+        prog_text_widget = tab_data["text_widget"]
+        current_text = prog_text_widget.get("1.0", tk.END).strip()
+
+        if file_contents == current_text:
+            return False
+        else:
+            return True
     
     def clear_program(self):
-        '''Clear the currently selected tab or close it if it's empty'''
+        '''Clear the currently selected tab's program_text and closes the tab'''
         current_tab = self.notebook.select()
         widget = self.notebook.nametowidget(current_tab)
 
         tab_data = self.file_tabs.get(widget, None)
         if not tab_data:
             return
-
-        self.file_tabs.pop(widget, None)
-        self.notebook.forget(widget)
+        
+        # Clear the program text widget and remove the tab
         prog_text_widget = tab_data["text_widget"]
         prog_text_widget.delete("1.0", tk.END)
-        tab_data["last_valid"] = ""
+        self.file_tabs.pop(widget, None)
+        self.notebook.forget(current_tab)
 
     def convert_file(self, file_path: str | None = None):
         try:
@@ -841,9 +832,9 @@ class App:
         '''Display the instructions set window'''
         instructions_window = tk.Toplevel(self.root)
         instructions_window.title("Instructions Set")
-        instructions_window.geometry("1100x375")
+        instructions_window.geometry("1150x400")
         instructions_window.iconbitmap('gui/cpu.ico')
-        instructions_window.minsize(1100, 375)
+        instructions_window.minsize(1150, 400)
         instructions_label = tk.Label(instructions_window, text=textwrap.dedent('''
             I/O operation:
             READ = 010 Read a word from the keyboard into a specific location in memory.
@@ -902,6 +893,9 @@ class App:
                       fieldbackground=[('disabled', self.secondary_color)],
                       foreground=[('disabled', self.primary_text_color)],
                       background=[('disabled', self.primary_color)])
+        
+        # Define a fixed width for notebook tabs
+        self.style.configure('TNotebook.Tab', padding=[5, 2], maxwidth=15)
 
     def apply_colors(self):
         '''Apply current color settings to all UI elements by updating styles'''
@@ -1006,13 +1000,9 @@ class App:
         
         # Convert back to hex
         return '#{:02x}{:02x}{:02x}'.format(*darkened_rgb)
-    
+        
     def new_tab(self):
         '''Create a new tab with a new program_text widget'''
-        MAX_TABS = 3
-        # Ensure only 3 tabs can be opened
-        if len(self.file_tabs) >= MAX_TABS:
-            return
         tab_frame = ttk.Frame(self.notebook)
         prog_text_frame = ttk.Frame(tab_frame)
         prog_text_frame.pack(fill="both", expand=True)
@@ -1023,15 +1013,14 @@ class App:
         prog_text_widget.configure(yscrollcommand=scrollbar.set)
         prog_text_widget.bind("<KeyRelease>", self.check_text_length)
 
-        # Store the tab data
         prog_text_widget.last_valid_text = ""
+
         self.file_tabs[tab_frame] = {
             "text_widget": prog_text_widget,
-            "file_path": None,
-            "last_valid": ""
+            "file_path": None
         }
 
-        self.notebook.insert(self.notebook.index(self.plus_tab), tab_frame, text="Untitled")
+        self.notebook.insert(self.notebook.index(self.plus_tab), tab_frame, text="New File")
         self.notebook.select(tab_frame)
 
     def on_tab_changed(self, event):
@@ -1039,19 +1028,23 @@ class App:
         current_tab = self.notebook.select()
         widget = self.notebook.nametowidget(current_tab)
 
-        # Track the last tab before switching to prevent switching to the plus tab
-        if not hasattr(self, '_last_valid_tab') or self._last_valid_tab != current_tab:
+        # Do nothing if at maximum tabs and the plus tab is clicked
+        if not hasattr(self, '_last_tab') or self._last_tab != current_tab:
             if widget != self.plus_tab:
-                self._last_valid_tab = current_tab
+                self._last_tab = current_tab
 
         if widget == self.plus_tab:
-            if len(self.file_tabs) < 3:
+            if len(self.file_tabs) < self.max_files:
                 self.new_tab()
             else:
-                if hasattr(self, '_last_valid_tab'):
-                    self.notebook.select(self._last_valid_tab)
+                if hasattr(self, '_last_tab') and self._last_tab in self.notebook.tabs():
+                    self.notebook.select(self._last_tab)
+                else:
+                    tabs = self.notebook.tabs()
+                    if tabs:
+                        self.notebook.select(tabs[0])
     
-    def get_current_tab_data(self):
+    def get_tab_data(self):
         '''Get the current tab data'''
         if not self.notebook.tabs():
             return None
@@ -1059,7 +1052,11 @@ class App:
         widget = self.notebook.nametowidget(tab)
         return self.file_tabs.get(widget, None) if widget != self.plus_tab else None
     
-    def get_current_prog_text_widget(self):
+    def get_prog_text_widget(self):
         '''Get the current program text widget'''
-        tab_data = self.get_current_tab_data()
+        tab_data = self.get_tab_data()
         return tab_data["text_widget"] if tab_data else None
+    
+    def truncate_text(self, text, max_length=15):
+        '''Truncate text and add an ellipsis if necessary'''
+        return text if len(text) <= max_length else text[:max_length - 3] + "..."
