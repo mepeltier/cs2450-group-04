@@ -31,8 +31,11 @@ def convert_file(file_path: str):
                 instructions.append("+000000\n")
         instructions[-1] = instructions[-1].rstrip()
 
+    # Create a more intuitive filename for the converted file
     idx = file_path.rfind(".")
-    copy_file = file_path[:idx] + " copy" + file_path[idx:]
+    base_name = file_path[:idx]
+    extension = file_path[idx:]
+    copy_file = f"{base_name}_converted{extension}"
 
     with open(copy_file, "w") as file:
         file.writelines(instructions)
