@@ -596,7 +596,7 @@ class App:
                 file_path = filedialog.askopenfilename(defaultextension=".txt", filetypes=[("Text files", "*.txt")])
 
             copy = convert_file(file_path)
-            messagebox.showinfo(f"Successfully saved file to {copy}")
+            messagebox.showinfo("Success", f"Successfully saved file to {copy}")
         except FileNotFoundError as e:
             if file_path:
                 messagebox.showerror("Error", f"File not found: {file_path}")
