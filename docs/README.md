@@ -1,26 +1,33 @@
 # CS 2450 Group 04 — UVSim
 
-This is currently a Proof of Concept UVSim parser for the BasicML language. It currently has support for the following commands:
+This is a feature-rich UVSim implementation for the BasicML language. It supports both legacy and modern BasicML formats with the following  features:
 
+- Multi-file support (up to 3 program files simultaneously)
+- Customizable color themes through the menu
+- File format conversion between legacy and modern BasicML
+- Step-by-step program execution
+- Real-time memory visualization
+
+The program supports these BasicML commands:
 **I/O operation:**
-- `READ = 10` Read a word from the keyboard into a specific location in memory.
-- `WRITE = 11` Write a word from a specific location in memory to screen.
+- `READ = 010` Read a word from the keyboard into a specific location in memory.
+- `WRITE = 011` Write a word from a specific location in memory to screen.
 
 **Load/store operations:**
-- `LOAD = 20` Load a word from a specific location in memory into the accumulator.
-- `STORE = 21` Store a word from the accumulator into a specific location in memory.
+- `LOAD = 020` Load a word from a specific location in memory into the accumulator.
+- `STORE = 021` Store a word from the accumulator into a specific location in memory.
 
 **Arithmetic operation:**
-- `ADD = 30` Add a word from a specific location in memory to the word in the accumulator (leave the result in the accumulator)
-- `SUBTRACT = 31` Subtract a word from a specific location in memory from the word in the accumulator (leave the result in the accumulator)
-- `DIVIDE = 32` Divide the word in the accumulator by a word from a specific location in memory (leave the result in the accumulator).
-- `MULTIPLY = 33` multiply a word from a specific location in memory to the word in the accumulator (leave the result in the accumulator).
+- `ADD = 030` Add a word from a specific location in memory to the word in the accumulator (leave the result in the accumulator)
+- `SUBTRACT = 031` Subtract a word from a specific location in memory from the word in the accumulator (leave the result in the accumulator)
+- `DIVIDE = 032` Divide the word in the accumulator by a word from a specific location in memory (leave the result in the accumulator).
+- `MULTIPLY = 033` multiply a word from a specific location in memory to the word in the accumulator (leave the result in the accumulator).
 
 **Control operation:**
-- `BRANCH = 40` Branch to a specific location in memory
-- `BRANCHNEG = 41` Branch to a specific location in memory if the accumulator is negative.
-- `BRANCHZERO = 42` Branch to a specific location in memory if the accumulator is zero.
-- `HALT = 43` Pause the program
+- `BRANCH = 040` Branch to a specific location in memory
+- `BRANCHNEG = 041` Branch to a specific location in memory if the accumulator is negative.
+- `BRANCHZERO = 042` Branch to a specific location in memory if the accumulator is zero.
+- `HALT = 043` Pause the program
 
 ## Poetry
 This project is managed with [Poetry](https://python-poetry.org/). In order to run this project, first install Poetry, through one of the recommended methods described by its documentation. Once Poetry is installed, see the following commands:
@@ -29,8 +36,15 @@ This project is managed with [Poetry](https://python-poetry.org/). In order to r
 
 `$ poetry install --all-extras` -- This creates a `.venv/` folder, in which poetry installs all the necessary libraries to run this project.
 
+**Important:** To run the program, use:
+```bash
+$ poetry run python -m src.main
+```
 
-Once those setup steps are completed, you can use `$ poetry run pytest tests/` to run the tests or `$ poetry run python src/main.py <file path>` to run the main program with a BasicML file. `Test1.txt` and `Test2.txt` are included here for convenience.
+To run the tests:
+```bash
+$ poetry run pytest tests/
+```
 
 > Note: Some installations of Python don't ship with `tkinter` by default. You need to make sure your Python 3.12 version is setup to use `tkinter` before creating the virtual environment with Poetry. 
 > If you're on MacOS, using Pyenv to manage your Python versions: 
@@ -41,4 +55,4 @@ Once those setup steps are completed, you can use `$ poetry run pytest tests/` t
 >
 > Then proceed with the Poetry instructions as listed above. If you already have Python 3.12.9 installed via Pyenv, you may need to uninstall it before these steps
 >
-> If these steps fail, you can always attempt to run the program without Poetry. You'll need to install the dependencies manually (`$ pip install <pkg>`) for `termcolor`, and `pytest`, if you want to run the test scripts. Then you can run `$ python src/main.py` without Poetry involved.
+> If these steps fail, you can always attempt to run the program without Poetry. You'll need to install the dependencies manually (`$ pip install <pkg>`) for `termcolor`, and `pytest`, if you want to run the test scripts. Then you can run `$ python -m src.main` without Poetry involved.
