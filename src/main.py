@@ -1,13 +1,9 @@
 """UVSim main entry point"""
 
-import gui
+from . import gui
 import argparse
 import textwrap
-
-try:
-    from src.boot import Bootstrapper
-except ImportError:
-    from .boot import Bootstrapper
+from .boot import Bootstrapper
 
 boot = Bootstrapper()
 mem = boot.memory
