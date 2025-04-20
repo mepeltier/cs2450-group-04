@@ -34,9 +34,13 @@ class Bootstrapper:
             for addr, instruction in enumerate(program):                
                 self.memory.write(addr, instruction.split()[0].rstrip())
         except IndexError:
-            raise IndexError(addr)
+            if addr == self.memory.size:
+                raise IndexError(f"IndexError: Cannot write to memory larger than size of {addr}")
+            else:
+                raise IndexError(f"IndexError: Cannot write at location {addr}")
+            
         except ValueError:
-            raise ValueError(instruction)
+            raise ValueError(f"ValueError: Invalid Instruction given : {instruction}")
                                
 
     def legacy_load(self, program):
