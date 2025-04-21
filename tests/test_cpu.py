@@ -13,7 +13,7 @@ class TestCPU(unittest.TestCase):
     def setUp(self):
         boot = Bootstrapper()
         self.cpu = boot.cpu
-        boot.load_from_file("tests/cpu_test_6digit.txt")
+        boot.load_from_file("XML_files/6digit_start.txt")
 
     def tearDown(self):
         pass
@@ -124,28 +124,14 @@ class TestCPU(unittest.TestCase):
         self.cpu.operation(31011)  # Subtract #0016 from accumulator (-8)
         self.cpu.operation(41059)  # Branches to 59 if accumulator is NEGATIVE
         assert self.cpu.pointer == 59
-
-    # def test_FULL_PROGRAM(self):
-    #     boot = Bootstrapper()
-
-    #     boot.load_from_file("tests/cpu_test.txt")
-    #     boot.run(gui=None)
-    #     with open("tests/cpu_test_final.txt") as file:
-    #         final_data = file.readlines()
-
-    #         boot.cpu.read_from_memory(85)
-    #         assert 1875 == boot.cpu.register
-
-    #         for i, word in enumerate(final_data):
-    #             boot.cpu.read_from_memory(i)
-    #             assert Memory.word_to_int(word.strip()) == boot.cpu.register
+    
 
     def test_FULL_PROGRAM_6_DIGIT(self):
         boot = Bootstrapper()
 
-        boot.load_from_file("tests/cpu_test_6digit.txt")
+        boot.load_from_file("XML_files/6digit_start.txt")
         boot.run(gui=None)
-        with open("tests/cpu_test_6digit_final.txt") as file:
+        with open("XML_files/6digit_final.txt") as file:
             final_data = file.readlines()
 
             boot.cpu.read_from_memory(85)
